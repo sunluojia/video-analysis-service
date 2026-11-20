@@ -1,0 +1,131 @@
+"""按商品本体归并，商品细节与原识别证据仍留在文字列。"""
+import re
+
+_CATEGORY_CONFLICT = object()
+WOMENS_GARMENTS = {'衬衫', '连衣裙', '半身裙', '裙子', '上衣', '外套', '裤子'}
+CLOTHING_TYPES = WOMENS_GARMENTS | {'女装', '男装', '童装', '雨衣', '服装'}
+
+# 业务已确认的商品类别边界保持稳定；用途、造型、IP、颜色、套装均不另立类别。
+PRODUCT_GROUPS = {
+    '女装': ('女装', '女装服饰'), '男装': ('男装', '男装服饰'),
+    '童装': ('童装', '儿童服装', '女童服装', '男童服装'),
+    '裤子': ('裤子', '紧身裤', '牛仔裤', '长裤', '短裤', '运动裤', '休闲裤', '打底裤', '阔腿裤'),
+    '外套': ('外套', '皮夹克', '夹克', '羽绒服', '大衣', '风衣'),
+    '上衣': ('上衣', 'T恤', '卫衣', '毛衣', '针织衫', '抹胸', 'Polo衫'),
+    '裙子': ('裙子', '短裙', '长裙'),
+    '箱包': ('箱包', '包袋', '水桶包', '挎包', '斜挎包', '单肩包', '手提包', '手拿包',
+             '背包', '双肩包', '钱包', '皮夹', '卡包', '行李箱', '旅行箱'),
+    '音箱': ('音箱', '音响', '低音炮'),
+    '保险柜': ('保险柜', '保险箱'),
+    '美发用品': ('美发用品', '美发产品', '发型相关产品', '护发产品', '护发精油', '护发精华',
+               '护发精华液', '染发剂', '卷发棒'),
+    '化妆品': ('化妆品', '彩妆产品'),
+    '酒类': ('酒类', '甜酒', '白酒', '红酒', '啤酒', '威士忌', '利口酒'),
+    '玩具': ('玩具', '玩偶', '公仔', '积木', '手办', '盲盒'),
+    '消毒液': ('消毒液', '消毒水'),
+    '贴剂': ('贴剂', '疤痕贴', '伤痛贴', '膏药', '止痛贴', '祛疤贴'),
+    '保健品': ('保健品', '保健品及其他', '营养补充剂'),
+    '食品': ('食品', '零食', '饼干', '糖果', '巧克力', '腌制小鱼', '小鱼干', '鱼干'),
+    '五金工具': ('五金工具', '螺丝刀', '扳手', '钳子', '电钻', '割草机'),
+    '健身用品': ('健身用品', '健身相关用品'),
+    **{name: (name,) for name in (
+        '棒球帽', '连衣裙', '半身裙', '运动鞋', '高跟鞋', '假发', '雨衣', '衬衫',
+        '帽子', '手套', '袜子', '围巾', '腰带', '耳环', '项链', '手链',
+        '口红', '香水', '窗帘', '纸尿裤', '身体乳', '洗护液', '洗发水', '护发素', '洗衣液',
+        '洗洁精', '洗面奶', '面霜', '粉底液', '妆前乳', '遮瑕膏', '眼影', '眼线笔', '面膜',
+        '手机', '手机壳', '耳机', '充电器', '充电线', '充电宝', '电脑', '键盘', '鼠标',
+        '水杯', '杯子', '杯垫', '餐具', '碗', '盘子', '锅', '收纳盒', '家居用品', '日用品',
+        '牙膏', '纸巾', '机油', '电子产品')},
+}
+_ALIASES = {alias: category for category, aliases in PRODUCT_GROUPS.items() for alias in aliases}
+_SORTED_ALIASES = sorted(_ALIASES, key=len, reverse=True)
+_PACKAGING = re.compile(r'(?:套装|套组|组合装|组合套装|礼盒装|礼盒|套件|[一二三四五六七八九十百两\d]+(?:件套|件装|只装|个装|支装))$')
+_TAIL_NOTE = re.compile(r'[（(][^（）()]*[）)]$')
+_NON_PRODUCT_ENDINGS = ('展示', '演示', '测评', '教程', '摄影', '风格', '造型', '肤色', '皮肤', '店', '工厂', '仓库', '市场')
+_NEGATED = re.compile(r'^(?:没有|未见|不含|不是|非商品)')
+
+
+def _strip_packaging(text):
+    previous = None
+    while text != previous:
+        previous = text
+        text = _TAIL_NOTE.sub('', text).strip()
+        text = _PACKAGING.sub('', text).strip()
+    return text
+
+
+def _category(text, *, declared=False):
+    """以明确商品本体为锚点，任意用途/IP/外观前缀都不能成为新类别。"""
+    if not isinstance(text, str) or not text or '#' in text or '＃' in text:
+        return None
+    text = text.strip()
+    if text.endswith(_NON_PRODUCT_ENDINGS) or _NEGATED.search(text):
+        return None
+    if text in _ALIASES:
+        return _ALIASES[text]
+    core = _strip_packaging(text)
+    # 角色名可以含另一种商品词，以末尾本体为准，例如“面包超人玩具”。
+    for alias in _SORTED_ALIASES:
+        if core.casefold().endswith(alias.casefold()):
+            # 单字商品词需有结构化商品依据，避免把非商品句子当成杯、碗、锅等。
+            if len(alias) > 1 or declared or core == alias:
+                return _ALIASES[alias]
+    if re.search(r'(?:女童|男童|儿童|婴儿|婴幼儿).*?(?:套装|套组|服饰)$', text):
+        return '童装'
+    if declared and core in {'鱼', '孔雀鱼', '观赏鱼', '斗鱼'}:
+        return '鱼'
+    if declared and core == '食物':
+        return '食品'
+    return None
+
+
+def product_context(items, *, include_issues=False):
+    """商品来源只帮助识别商品；无法确定时用None要求保留原标签。"""
+    candidates = {}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        names = [item.get(key) for key in ('name', 'label', 'original_name')]
+        category = _category(item.get('category'), declared=True)
+        named = {_category(name, declared=True) for name in names} - {None}
+        # 历史category可能由旧别名误命中（如吸水杯垫→水杯）。有明确中文本体时先采用本体。
+        if item.get('category_source') == 'legacy_name' and named:
+            known = next(iter(named)) if len(named) == 1 else _CATEGORY_CONFLICT
+        else:
+            known = category or (next(iter(named)) if len(named) == 1 else _CATEGORY_CONFLICT if named else None)
+        for name in names:
+            if isinstance(name, str) and name.strip() and name != '未识别中文品类':
+                candidates.setdefault(name.strip(), set()).add(known)
+    resolved, issues = {}, {}
+    for name, values in candidates.items():
+        known = values - {None}
+        if len(known) == 1 and _CATEGORY_CONFLICT not in known:
+            # 缺字段的记录不能覆盖其他记录中已确认的大类。
+            resolved[name] = next(iter(known))
+        else:
+            resolved[name] = None
+            issues[name] = ('多条商品记录的大类不一致，需核验' if known
+                            else '已识别为商品，但本地大类映射未覆盖名称或品类')
+    return (resolved, issues) if include_issues else resolved
+
+
+def product_type(tag, womens_context=False, known_products=None):
+    if '#' in tag or '＃' in tag:
+        return tag
+    known_products = known_products or {}
+    # 缺失或冲突的商品依据必须保留原词，不能再被名称匹配或女装上下文覆盖。
+    if tag in known_products and known_products[tag] is None:
+        return tag
+    value = known_products.get(tag) or _category(tag)
+    if value is None:
+        return tag
+    if womens_context and value in WOMENS_GARMENTS:
+        return '女装'
+    return value
+
+
+def result_products(result):
+    labels = result.get('labels') or {}
+    attributes = labels.get('attributes') or {}
+    products = attributes.get('products') or []
+    return [item for item in products if isinstance(item, dict)]

@@ -1,0 +1,91 @@
+{
+  "provider": {
+    "name": "阿里云百炼（旧项目迁移）",
+    "provider": "openai",
+    "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "credential_ref": "DASHSCOPE_API_KEY"
+  },
+  "models": [
+    {
+      "key": "listen",
+      "name": "qwen3.8-omni-flash",
+      "max_concurrency": 4,
+      "requests_per_minute": 60,
+      "timeout_seconds": 240,
+      "params": {
+        "temperature": 0,
+        "streaming": true,
+        "stream_usage": true,
+        "model_kwargs": {
+          "modalities": [
+            "text"
+          ]
+        },
+        "extra_body": {
+          "enable_thinking": false,
+          "max_tokens": 2500
+        }
+      }
+    },
+    {
+      "key": "vision",
+      "name": "qwen3.8-flash",
+      "max_concurrency": 4,
+      "requests_per_minute": 60,
+      "timeout_seconds": 240,
+      "params": {
+        "temperature": 0,
+        "streaming": true,
+        "stream_usage": true,
+        "extra_body": {
+          "enable_thinking": false,
+          "max_tokens": 16000
+        }
+      }
+    }
+  ],
+  "routes": [
+    {
+      "kind": "listen",
+      "model_key": "listen",
+      "share": 4
+    },
+    {
+      "kind": "recognize",
+      "model_key": "vision",
+      "share": 3
+    },
+    {
+      "kind": "summarize",
+      "model_key": "vision",
+      "share": 1
+    }
+  ],
+  "legacy_reference": {
+    "vision_model": "qwen3.8-flash",
+    "alternative_vision_model": "qwen3.7-flash",
+    "sound_model": "qwen3.8-omni-flash",
+    "asr_model": "qwen-audio-3.1-asr-flash",
+    "recognize_temperature": 0.1,
+    "recognize_max_tokens": 16000,
+    "summary_temperature": 0,
+    "summary_max_tokens": 6000,
+    "listen_temperature": 0,
+    "listen_max_tokens": 2500,
+    "global_realtime_concurrency": 30,
+    "summary_concurrency": 4,
+    "request_timeout_seconds": 240,
+    "sample_frames": 6,
+    "audio_segment_seconds": 30
+  },
+  "adaptation_notes": [
+    "API 密钥未迁移，按用户要求稍后补充；credential_ref 仅是未来读取的环境变量名。",
+    "本文件迁移源码中的默认配置，不代表已经读取旧生产环境或每个历史任务的模型覆盖值。",
+    "并发4和RPM60使用新服务的保守默认值，未当作供应商配额；旧全局并发30不能直接等价为每模型30。",
+    "识别与汇总共享同一个qwen3.8-flash模型记录和额度，避免重复建立独立额度；当前参数只能按模型配置，统一temperature=0、输出上限16000，无法同时复现旧汇总单独6000的限制。",
+    "enable_thinking和max_tokens通过extra_body透传百炼参数；避免当前ChatOpenAI将max_tokens自动改名为max_completion_tokens。",
+    "旧独立ASR、抽帧数和音频分段仅记录为迁移参考，当前没有新增ASR阶段或改动媒体处理配置。",
+    "旧版逐帧人物属性与汇总来源分组仍无结果字段，原文留存source；商品尺码与证据使用当前新增的Product/ProductSize结构。",
+    "标签命名、过滤、合并、#形式与数量由系统提示词决定；代码不再去#、忽略大小写合并或截断20条。JSON字段结构由Pydantic与LangChain with_structured_output负责。"
+  ]
+}

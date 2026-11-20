@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+data/
+logs/
+.claude/
+.idea/
+
+# 本机配置迁移与审计记录
+/config/legacy-ai/applied.json
+/config/legacy-ai/before-*.json
+/config/legacy-ai/source-manifest.json
+/docs/code-audit-2026-11-17.md

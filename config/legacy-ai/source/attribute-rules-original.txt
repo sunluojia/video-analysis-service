@@ -1,0 +1,82 @@
+
+同时输出扩展标签。以下属性属于可观察内容，不得从头发、肤色等推断种族或性别身份。
+observations每项增加people、child_count、child_evidence、pet_count、pets。
+有人脸的帧，people仅描述可见脸对应的人物，按脸从左到右编号，最多30项；仅肢体帧的people只记录有证据的局部属性，person_index为观察编号而非人数；独立身体可明确区分时，由visible_person_count单独统计出镜人数，不能用people条数或观察编号代替。每项包含person_index、primary_subject、appearance_presentation、age_group、child_age_group、body_type、hair_length、hair_texture、skin_tones、skin_evidence、clothing_styles、skin_appearance、makeup、manicure、evidence。
+primary_subject为true/false：单人出镜为true；多人时只有明确主要展示/讲解人物为true，每帧至多一个；不明确均为false。
+appearance_presentation描述造型呈现，与已核实性别身份独立：{value:女性/男性/中性/null,cues:[{kind:clothing/makeup/hair/accessories/manicure,description:具体可见造型}],evidence:简短组合依据}。按业务使用男性、女性、中性这三个外观名称，不返回男性化特征/女性化特征/中性呈现。只能依据服装剪裁/搭配、妆容、发型造型、配饰、美甲的组合风格，至少两种不同kind且线索清晰才归类；不能仅凭长发/短发/一件衣服或没有妆容二选一。证据不足时value=null，原因写在evidence。禁止用胸部、身体结构、面部骨骼、喉结或音色判断，不声称已确认此人性别身份。不得从所展示的女装商品自动推断人物呈现。
+person_index从0开始；人脸数已知时小于face_count，仅肢体时只作为局部观察编号，不代表人数。只描述同一观察对象，禁止把不同对象属性拼成一个画像。仅肢体无法看到脸时年龄和makeup用null，其他看不清的单值属性也用null，数组用[]。evidence简要说明各已知属性的可见依据，不是只写“人物出镜”。
+年龄/体型/发长/卷度字段使用有依据的单个枚举字符串，未知或不适用为JSON null；clothing_styles和skin_appearance必须是数组（未知为[]，不要写成字符串）；makeup/manicure为布尔或null。未知原因只写入evidence，不输出“无法确定”“未知”“不适用”等属性值。
+body_type是可见身材外观估计，必须使用完整标签身材偏瘦/身材中等/身材偏壮/身材偏胖，不返回裸词偏瘦/中等/偏壮/偏胖，也不使用中等体型或体型中等等旧同义词。只有身体轮廓足够清楚时判断；只见脸、厚重/宽松衣物遮挡、远景或明显变形不能据此估计身材，body_type=null。脸部胖瘦、服装尺码、商品版型不等于身材，不推断体重或健康状况。
+人物和帧级skin_tones只填写一个下方已知可见肤色名称（数组最多一项），有肤色必须有skin_evidence，说明可见脸部/手臂等区域与画面色调。描述实际画面中看到的肤色，不要求恢复自然光或真实肤色；普通室内暖光且皮肤清晰可见时可选择最接近的外观类别，不得仅因室内光或有妆就全部未知。严重色偏/彩灯/过曝/深度遮挡/动画或难以区分时skin_tones=[]，skin_evidence如实说明原因，不输出无法判断肤色等占位名称。中性肤色不是默认兜底；不推断种族或族裔。
+年龄只用24岁及以下、25-34岁、35-44岁、45-54岁、55岁+，属于外观估计，不是精确年龄；边界无法分辨则null。只有age_group为24岁及以下时才额外判断child_age_group为婴幼儿/幼儿/儿童/青少年；25岁及以上、年龄未知或无法落入儿童/青少年段时child_age_group=null，不能据此认为有小孩。看不清全身/发型时相关单值字段用null；帽子遮发不是无头发。
+makeup/manicure只用true/false/null。只有脸部或指甲清楚可见才能判断false；没看到、滤镜或远景用null。皮肤只能描述可见纹理/发红/痘样凸起，不诊断疾病；平滑外观不证明没瑕疵或使用滤镜。
+指甲造型清楚可见时用manicure=true表达有美甲，不能另在matched_tags、additional_tags或products中重复写美甲/假指甲/夜光美甲等人物造型词。确实展示或使用美甲贴片商品时products.name/category=美甲贴片，可与有美甲并存；只见商品包装、普通亮色指甲或看不清甲面不能据此推断人物有美甲或夜光效果。具体造型只写evidence/description。
+hair_length只用光头/短发/中长发/长发，未知为null：明确无发且头皮无遮挡清楚可见才用光头，不能把帽子、头巾、画外或遮挡当光头；可见全长至耳部用短发，超过耳部至肩部用中长发，超过肩部用长发。盘发/扎发看不清实际全长则null，不猜隐藏长度。光头的hair_texture=null，不添加直发/卷发标签。
+hair_texture只用直发/卷发/null。波浪卷、卷发、紧密卷曲等只要有明确卷曲外观均统一写卷发，不把卷曲程度或造型细节另写为标签；细节可在evidence/description中保留。遮挡或画质不清时null，不默认卷发。
+skin_appearance严格使用皮肤光滑、皮肤长痘、皮肤发红、皮肤有瑕疵、皮肤有雀斑、皮肤有其他纹理，每个名称必须带“皮肤”。清楚看到局部痘样凸起才标皮肤长痘；细小雀斑样斑点清楚可见才能标皮肤有雀斑，普通不明斑点或瑕疵用皮肤有瑕疵，不能由旧的泛化瑕疵猜成雀斑。允许有依据的状态多选；远景、遮挡、强美颜或画质不足用[]，不能默认皮肤光滑。标签只描述画面外观，非医学诊断。
+child_count独立统计画面中可明确辨认的婴幼儿至青少年，不只统计露脸小孩，不能把face_count/people_count当作小孩数量的上限。例如一张成人脸加怀中未露脸但清楚可辨的婴儿，可以face_count=1、people只写成人、child_count=1；小孩没有露脸不应虚构第二张脸或补造人物脸部属性。child_evidence必须说明实际可见的小孩依据，单凭字幕“6 month old”、口述提及孩子或亲属称谓不能证明小孩实际出镜。数量不明或年龄不能分辨用null；完全无人时0。child_age_group只在24岁及以下时做附加细分，其他年龄为null。不能仅凭24岁及以下或空值就统计小孩。
+pet_count是该帧可见宠物类动物数量，明确没有为0，不清楚或动物是否宠物类不明用null。
+pets每项为kind、breed、count、evidence；例如狗/猫/兔等，breed看不清用null；有品种时仅作外观估计，不能断言纯种；宠物用品或狗的叫声不计入。
+再增加顶层attributes：scenes、video_types、filter、fitness、products。
+scenes与video_types均为数组，每项为value、frame_indices、transcript_quote、evidence。场景须有画面证据；视频类型可多选，带货须有购买引导/价格/售卖等证据，展示产品不自动等于带货；测评须有试用/比较/评价；vlog不是所有日常视频的默认标签。
+fitness为{value:true/false/null,frame_indices:[],transcript_quote:"",evidence:""}；穿运动服/身材壮不证明健身，须可观察运动或器械使用。
+filter结构相同并增加direct_visual_evidence:true/false；没有直接效果或明确台词时value=null。只能用明显的贴纸/变形/特效或明确滤镜说明判断true；不能从皮肤光滑、曝光、色彩判定；不能仅凭没有看到特效就判定false。
+products最多20项，每项name、category、original_name、brand（可读品牌或明确提及才填写，否则null）、action、frame_indices、transcript_quote、evidence。name和category都只写同一个简短中文品类，完整品名另放original_name，品牌单独放brand，不与品类拼接；区分实际使用/展示与语音讲解/售卖，不能凭包装颜色猜品牌型号。
+products每项增加sizes数组：只从与该产品明确对应的清晰吊牌/包装/尺码表文字或明确ASR口述读取。每项value原始尺码标记、system=CN/EU/US/UK/国际字母码/品牌自定义/未注明、source=visual_text/transcript、scope=product_label/stated_fit_range、frame_indices、transcript_quote、evidence。口述value必须原样存在于引用；制式不明用未注明，不换算。口述“适合B到D杯”只能记录明确说明的产品适用范围，不能当出镜人物罩杯。仅凭穿着效果、胸部轮廓、聚拢、胸垫不能推算罩杯或胸围，模糊/遮挡/对应产品不明则sizes=[]。
+用户另外需要独立的罩杯外观猜测：people每项可增加visual_cup_range={range:null或A-C/B-D/C-E/D-F/E-G/F-H,upper_body_clear:true/false,underwear_visible:true/false,obvious_distortion:true/false/null,evidence:"简短外观依据"}。这只是低置信度外观猜测，不是实际罩杯或胸围，不填入products.sizes。只对25岁及以上成年外观、内衣与上身轮廓清楚且没有明显厚垫/夸张聚拢/遮挡/透视变形时尝试宽范围，不准给具体罩杯、不准猜胸围厘米数。24岁及以下、儿童、青少年、年龄不明、只展示商品、远景、侧背面不清楚或证据不足时range=null。不要为了填字段强行猜测。
+优先读取明确产品罩杯（吊牌、包装、尺码表、口述），有这些信息时visual_cup_range.range=null；只有都没有才尝试外观范围。推测标记由程序添加，不得把推测范围写入明确产品sizes。
+未知属性保留字段，单值为null、数组为[]，原因写在evidence，不能为填满字段猜测。无人物people=[]，无宠物pets=[]，无产品products=[]；evidence简短且不超过120字；所有扩展语音引用遵守连续原文校验。
+已知值枚举（有依据时逐字使用；未知单值用null、数组用[]，原因放evidence）：
+{"age_group": ["24岁及以下", "25-34岁", "35-44岁", "45-54岁", "55岁+"], "child_age_group": ["儿童", "婴幼儿", "幼儿", "青少年"], "body_type": ["身材偏瘦", "身材中等", "身材偏壮", "身材偏胖"], "hair_length": ["中长发", "光头", "短发", "长发"], "hair_texture": ["直发", "卷发"], "skin_tones": ["极白肤色", "偏白肤色", "白肤色", "白中偏黄肤色", "浅黄肤色", "黄肤色", "深黄肤色", "浅黑肤色", "偏黑肤色", "深黑肤色", "中性肤色"], "clothing_styles": ["休闲", "传统服饰", "制服", "商务", "复古", "居家", "户外", "正式", "泳装", "礼服", "街头", "运动"], "skin_appearance": ["皮肤光滑", "皮肤发红", "皮肤有其他纹理", "皮肤有瑕疵", "皮肤有雀斑", "皮肤长痘"], "scenes": ["健身房", "公园", "其他室内", "其他户外", "办公室", "卧室", "厨房", "商店", "客厅", "庭院", "摄影棚", "浴室", "海边", "自然户外", "街道", "车内", "餐厅"], "video_types": ["产品展示", "娱乐", "带货", "开箱", "教程", "日常", "测评", "点评", "生活记录", "街拍", "观点", "跳舞", "运动记录", "音乐表演"], "product_action": ["使用", "售卖", "展示", "讲解", "试用"]}
+attributes额外增加pregnancy_claims、pregnancy_content_mentions、pregnancy_commerce_claims、pregnancy_visual_evidence，无明确依据均返回[]。
+引用结构统一为{source:transcript/visual_text,frame_indices:[],transcript_quote_id:null或本请求原文编号,text:清晰画面文字原文或空,text_type:subtitle/title/product_label/other}，text_type仅用于画面文字。
+pregnancy_claims每项为引用，只记录明确当前第一人称怀孕/未怀孕自述，例如“我怀孕20周了”“我目前孕早期”“我没有怀孕”。不确认说话者或出镜人物实际孕情。
+只要提供的ASR/清晰文字已有明确披露，即使没有画面、不能核验身份或真实孕情，也应提取视频自述；这些限制不是拒绝原文明示内容的理由。证据不足才返回[]，不得把明确自述一律置空。
+对所有语言先理解整段ASR/清晰文字上下文，再区分说话者当前自述、他人经历、过去经历、假设、否定及普通育儿分享；不要求逐字出现“我怀孕了”或同一句说出孕周。可记录整段语义已明确披露的本人当前孕期经历，但不能从腹部、体型、衣着、举止或声音猜孕情。仅肚子大、展示母婴商品、抱孩子不构成自述。
+pregnancy_claims每项额外填写self_report:{value:true/false,subject:speaker_self,temporality:current,evidence_kind:explicit_disclosure,explanation:用简短中文说明原文如何明确披露本人当前孕情}。不确定、非当前本人或只有外观推测时不要填写为肯定自述，返回[]；explanation必须说明原文语义，不编造翻译或补充原文没有的孕情。
+不限中英西，不设语言白名单；法语、葡萄牙语、德语、意大利语、日语、韩语、阿拉伯语等均直接理解原ASR/原文字。输出中文解释，引用始终为原语言；不另行调用翻译，不把中文译文替换transcript_quote_id或画面文字。
+例如西语“desde que empecé el embarazo”结合当前孕期经历、“tengo 33 semanas”及“estoy creando dos vidas”可由上下文识别为当前本人自述；33 semanas表示明确33周，不是腹部预测。为结论选择连续完整原文编号，必要时分别保留连续证据，但不要拼接引用。不以体重、肚围、腹部大小、胎儿数量或月份推算孕周/孕周范围；缺少明确孕周/阶段则仍保留未知，不输出任何身体外观预测。
+英文自述同样提取，包括ASR的英文数字词。例如“Now that I am thirty six weeks pregnant, it is time to pack my snacks in my diaper cart.”须填写pregnancy_claims及pregnancy_content_mentions，原文保留thirty six，不改写成36；程序解析为36周、孕晚期。不要因英文数字词漏掉明确自述，也不把I was/she is/if I am等过去、他人或假设表述当成当前第一人称自述。
+pregnancy_content_mentions每项为引用：提取口述中孕周、阶段、商品名称，读取画面“孕 12 周”“孕晚期”等清晰字幕/标题/标签。孕期主题无需第一人称；第三人称、过去经验、泛化知识仅表明视频内容，不放入人物当前怀孕自述。
+所有孕期主题引用（pregnancy_content_mentions、pregnancy_commerce_claims.pregnancy_context、pregnancy_visual_evidence.context_reference）增加content_semantics:{kind:pregnancy_topic,value:true,evidence_kind:explicit_text,explanation:简短中文说明原语言如何明确提及孕期内容}；sales_context增加同结构kind=sales_offer，说明明确购买引导/价格/链接。普通商品展示或育儿分享不自动成为孕期主题或带货。语义不足返回[]，不靠翻译后中文关键词伪造原文。
+每个含明确孕周/阶段的上述引用或肯定pregnancy_claims可增加gestation_semantics:{evidence_kind:explicit_text,explanation:简短中文说明明确文字, weeks:[{value:整数孕周,days:null或明确0至6天,unit:gestational_weeks,raw_text:孕周单位及数值的连续原语言片段}],stages:[{value:孕早期/孕中期/孕晚期,raw_text:直接阶段名称的连续原语言片段}]}。没有明确数值或阶段时省略对象，weeks/stages未提及的返回[]；raw_text必须原样存在于该条引用，不能用翻译、拼接或补字。
+例如法语“Je suis enceinte de trente-trois semaines.”可归一化weeks.value=33，raw_text=trente-trois semaines；日语“妊娠33週です。”可归一化33周，raw_text=妊娠33週。法语“troisième trimestre”可记录stages.value=孕晚期但weeks=[]。只记录明确写出/说出的孕周或阶段；数字词可转整数，但月份、范围、小数、否定句、腹部或体型不能换算为孕周/阶段。stages仅用于直接阶段名，孕周转阶段由程序统一处理，不重复填写从孕周推导的stages。
+口述选包含孕期/孕周/商品的连续完整原文编号，不能省略、拼接或改写；画面文字逐字复制并附对应帧。不得根据腹部、身材、衣服、手摸肚子或声音推断怀孕或阶段。
+阶段只按明确孕早期/孕中期/孕晚期或明确孕周归类：不足14周为早期，14至不足28周为中期，28周起为晚期；不从外形、月份、商品类型推算。不同口述与字幕不一致时全部保留原文，不自行择一。不把阶段倒推为具体孕周。
+商品须同时填写attributes.products（明确名称、实际展示/使用/口述讲解及引用），场景填attributes.scenes。不能凭包装颜色猜品牌型号；同一商品不要重复。
+pregnancy_visual_evidence每项{kind:product/demonstration,product_name:与products完全一致,frame_indices:[],transcript_quote_id:null,description:具体可见商品/演示,context_reference:上述引用结构}。
+只有可见商品或明确的产品使用/展示演示并有对应孕期原文才填写，商品帧必须与products一致；不能把一般服装、普通身体轮廓或单纯字幕虚构成演示。context_reference需明确提及同名商品或同帧孕期文字以支持关联。description只描述商品/动作/场景，不描述身体孕情。
+pregnancy_commerce_claims每项{pregnancy_context:引用,sales_context:引用}，孕期商品/内容与购买引导/价格/链接两种明确依据同时存在才填写。孕期带货是内容类型，不证明任何人怀孕；仅经验分享无购买引导不打孕期带货。
+孕期信息仅在这些专用字段返回，不放入matched_tags、fallback_tag或remarks。所有孕周、阶段、商品、演示的来源由程序汇总，复用现有图片和ASR，不重复分析。
+
+attributes增加pregnancy_test_observations和pregnancy_test_statements，无明确检测内容时均为[]。在本次实际采样图片上读取器具及窗口，复用ASR；不能把旧生成描述、人物反应、字幕“震惊”或肚子当作验孕结果。
+以下每处“引用”（device_reference、reading.reference及pregnancy_test_statements每项本身）均须包含{source:transcript/visual_text,frame_indices:[],transcript_quote_id:null或本请求整数原文编号,text:画面原文或空字符串,text_type:subtitle/title/product_label/other}。口述必须source=transcript且有transcript_quote_id，不能填quote或explanation代替编号；画面引用必须source=visual_text且text非空、frame_indices有实际帧，不能将口述内容放入visual_text。不能读取画面文字时用真实口述引用支持器具用途，不能编造画面字。
+pregnancy_test_observations每项{device_kind:pregnancy_test/other_test/unknown,frame_indices:[],transcript_quote_id:null,description:具体器具与窗口可见情况,device_reference:引用,device_semantics:{kind:explicit_test_context,value:pregnancy_test,explanation:中文说明明确验孕用途依据},display:two_lines/one_line/digital_text/unclear,reading:null或读数对象}。
+device_reference使用孕期字段统一引用结构，只有明确的包装/器具hCG或验孕文字，或整段口述明确验孕上下文才可识别pregnancy_test。其他检测（排卵LH/新冠等）、不明小棒、单独“a test”都不能据此确认验孕用途。器具须在frame_indices真实可见；用途文字为同帧，口述引用可提供完整上下文。即使口述认为阴性，也独立读取画面。
+验孕用途的文字与口述是两种可选依据，不要求画面独立读出hCG和口述同时成立。例如明确说明“做了测试，要排除怀孕”，同时画面拿着检测棒，则可记录验孕检测，device_reference选择包含这段上下文的完整ASR编号（必要时编号0）。这不确认怀孕；若窗口看不清仍display=unclear、reading=null。不能因为没有器具印字就忽略明确验孕口述上下文。
+display只描述实际窗口：清楚见到两条结果线才two_lines；清楚见到一条才one_line；读得出数字屏文字才digital_text；窗口背面、手挡、模糊、远景或没有看清结果线均为unclear，绝不因为反应惊讶或口述补造“两条红线”。
+reading为{method:digital_text/labelled_lines/printed_legend/none,reference:同一器具画面文字引用,explanation:如何按可读规则解释结果,control_line_visible:true/false/null,test_line_visible:true/false/null}。窗口读不清或没有规则时reading=null。reference仅source=visual_text，逐字保留窗口/标识/印刷说明，不能用口述或惊讶字幕代替。
+digital_text：窗口明确Pregnant/Not Pregnant/Positive/Negative等才读取结果；其他语言可增加text_semantics:{kind:explicit_device_result,value:positive/negative,explanation:原语言窗口文字的结果含义}。labelled_lines：同一已识别验孕器具的C/T标识与对应线均清楚，C有线且T有线为阳性，C有线且T清楚无线为阴性；C缺失、结果区不全、位置不清均无法判断。printed_legend：可读同器具/包装的阳性阴性线数说明，并增加positive_display:two_lines/one_line,negative_display:one_line/two_lines；规则与实际窗口相符且控制线可辨才读数。仅看见两条线无规则时可记录two_lines，但reading=null，不自动阳性。
+pregnancy_test_statements每项为source=transcript的连续原文引用并增加test_result_semantics:{kind:spoken_test_result,value:positive/negative/unknown,certainty:explicit/uncertain,explanation:中文说明口述对该检测结果的判断及是否犹豫}。“I think it's negative”“pretty sure”“I don't think I'm pregnant”属于不确定口述，不是确定未怀孕，也不覆盖稍后的画面。只记录与本次验孕检测相关的判断，不把排卵/其他检测混入，不推断不孕。
+检测内容与人物怀孕自述严格分开：阳性窗口不自动生成pregnancy_claims，不推算孕周或阶段。保留画面和口述各自依据，来源不一致时不自行择一；验孕标签只由这些专用字段生成，不放matched_tags/fallback_tag/remarks。
+逐帧观察中的器具和读数描述须与本专用字段一致；窗口不清楚时逐帧描述明确写无法读取，不能在description补造两条红线或阳性，再让总结沿用错误观察。
+
+“家庭”是本条视频的内容主题，可以依据实际成人儿童互动、家庭生活活动、家庭消息揭晓、家庭经历分享来分类；不要求确认出镜者真实亲属关系，也不声明账号为家庭账号。不要因为不能核验人物身份而漏掉明确家庭主题。
+attributes增加family_content_evidence数组，最多8项，无依据为[]。每项{source:visual_interaction/transcript/visual_text,frame_indices:[],transcript_quote_id:null或本请求连续原文编号,description:具体互动或对话主题,text:清晰画面原文或空字符串,content_semantics:{kind:family_content,scope:video_content,value:true,theme:成人儿童互动/家庭生活/家庭消息揭晓/家庭经历分享,evidence_kind:direct_interaction/contextual_dialogue/explicit_text,explanation:简短中文解释内容主题依据}}。
+source=visual_interaction：必须有采样帧中实际可见的成人儿童照料、抱着孩子互动、玩耍、共同表演或共同生活活动，再增加interaction:{participants:adult_and_child,activity:照料/玩耍互动/共同表演/共同生活活动,directly_visible:true}，theme=成人儿童互动。不因“多人同框”“笑容”“室内”“有小孩”单独归家庭；儿童独自活动、多人排队、同事聚会、人与宠物互动不据此归家庭。只描述人物、动作、场景，不把一男一女猜成夫妻或把成人猜成亲生父母。
+source=transcript：先理解完整多语言对话/讲述再判主题，evidence_kind=contextual_dialogue，引用必须选择足以支持内容主题的一段完整连续ASR原文编号。不要求固定语言关键词。“Daddy...Big sister...Are you pregnant? Yeah...You're gonna be a big sister”结合完整对话可归家庭消息揭晓；单独Daddy/big sister、一句歌词、商品名、泛化“family size”不足以分类。不将歌曲歌词当家庭成员真实对话，也不从家庭内容倒推人物孕情。没有一条短句能完整支持时选本请求中已有的完整上下文编号，不能拼接。
+ASR没有可靠说话者身份标注，description与explanation只说明对话主题，不将问答对象分配给具体人物；尤其“你将成为姐姐”不表示姐姐本人怀孕，不要写“向大姐姐确认她怀孕”。只记录“包含怀孕相关问答和将成为姐姐的消息揭晓”，不把消息接收者误当怀孕自述者。
+source=visual_text：明确家庭主题字幕/标题可作为内容依据，text逐字复制原语言，附对应帧，evidence_kind=explicit_text；仍不核验字幕说法真实。全部来源的解释只能说明内容，不宣称已证实父子、母女、夫妻、兄弟姐妹身份。
+只要有支持的family_content_evidence，就应将内容归到词典“家庭”（t0026），可与日常、娱乐、vlog、带娃日常等有依据类别并存；程序也会从专用字段补充家庭类别并去重。家庭日常/家庭类等同义表达归一个“家庭”，不重复输出。不要把“家庭”仅写入总结却漏掉专用证据。无需新增模型调用，复用当前图片与ASR。
+
+商品尺码显示时必须包含对应的中文商品名：large显示为衣服大号或具体的卫衣大号，medium显示为对应商品中号，XL显示为内衣XL码等；不得把large、medium、XL、M作为独立标签。只使用与该商品明确关联的包装/吊牌文字或口述，商品不明不拼接、不猜尺寸。products.sizes.value继续保存证据中的原始标记供引用核对，完整尺码标签使用中文商品名加尺码，不从人物外观推测。
+products的name与category都只写有直接依据的简短中文品类，二者同名，不包含品牌、系列、型号、颜色、材质、功能卖点或制作方式。例如STARRYZOOM 假睫毛的name/category均为假睫毛，Laifen自动卷发棒均为卷发棒，自制磨砂膏均为磨砂膏，e.l.f.妆前乳均为妆前乳。任何品牌都不与品类拼成标签。完整中英文品名放original_name，已明确的品牌放brand；这些细节可以出现在description/evidence，不出现在tags、name、label、value中。
+按同一商品本体统一命名：多个品牌、自动/手动等功能、颜色款式或自制/成品等制作方式，不另立标签。同一视频只保留一个磨砂膏品类，不同时输出自制磨砂膏、身体磨砂膏和磨砂膏。不因为泛词更短就把卷发棒、吹风机、假睫毛等不同商品全部改成美发工具或美妆用品；采用可辨认的常用品类，保留不同商品。如果确实存在制作动作，制作过程可在description说明，有依据的教程主题另写内容类型，不把修饰后的商品名再当主题。
+盲盒与玩具分别保留，不能把盲盒当作包装或制作方式修饰而改成玩具。明确为盲盒的商品name/category写盲盒，明确的玩具写玩具；同一视频展示盲盒并拆出可辨认的玩具时可同时输出盲盒、玩具，两者不会互相覆盖。普通纸盒或包装不证明盲盒，只有盲盒而内容物不明时也不默认加玩具。
+品类依据优先顺序：清晰可读的对应产品文字、与该产品明确对应的口述、可明确辨认的使用动作。不能只凭泵瓶、包装配色或相似容器把化妆品归为粉底液。对应口述中的primer=妆前乳、concealer=遮瑕膏、foundation=粉底液；“不需要foundation”不表示正在展示粉底液。画面与口述必须关联到同一产品，不能套用前后其他产品的品类。显示的型号未知就保留未知。
+brand保持证据中的原始品牌拼写；常用品牌有正式中文名时brand_zh填中文，例如Estée Lauder=雅诗兰黛，无明确中文名时brand_zh=null。品牌字段仅供核对，不生成品牌标签。Putty Primer或Glow Primer只能在证据支持时保存在original_name或说明，不能因转写Say Glow Primer就写“实际应为Putty Primer”；商品标签统一妆前乳。
+语音引用仍必须选择连续ASR原文编号，不翻译引用。不凭包装配色、相似容器或其他产品的品牌猜测品牌；不凭系列名推断原文没提及且包装不可读的品牌。品类无法确认时name/category=null，原因放evidence，不输出未识别中文品类、无法确定、商品或产品等兜底标签。
+跨字段核对：products已表达的商品不要在fallback_tag、additional_tags或matched_tags中再以带修饰词的名称重复输出。已有商品或具体内容类别时fallback_tag=null；商品主题词与products.name/category同名。原名/品牌只存到专用资料字段，不包进含name、label、value的嵌套对象。
+商品泛类食物/食品统一写食物；有依据的具体品类可分别保留，不重复添加食品这个同义泛类。美甲贴片是独立商品品类，name/category都写美甲贴片；人物做过美甲或佩戴甲片的造型由manicure=true表达有美甲，不把人物的假指甲/夜光美甲描述再当成商品标签。
+酒使用明确的大类例外：已确认酒类商品的name/category一律写酒，不分品牌、烈酒/预调酒/龙舌兰酒等子类，不重复添加酒类。Azerac House 烈酒、Jose Cuervo 预调酒、1800 龙舌兰的name/category均为酒；完整品名留original_name，有证据的品牌留brand。仅有不明英文词或相似瓶装不能推断为酒。
+Windex清洁剂等带品牌名称在name/category只写清洁剂，原品牌和品名分开保存。完整英文名称如Subaru Performance B STI Concept Car、Pumpkin blonde bar mix只能放original_name或说明，不能出现在tags/name/label/value中；根据实际证据选择中文品类，无法确认时name/category=null，不通过字面拆词猜汽车、食物或酒。

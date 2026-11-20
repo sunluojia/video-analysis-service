@@ -1,0 +1,614 @@
+{
+  "version": "2026-10-12",
+  "brands": [
+    {
+      "label": "e.l.f.",
+      "aliases": [
+        "e.l.f.",
+        "e.l.f",
+        "elf",
+        "E.L.F."
+      ]
+    },
+    {
+      "label": "雅诗兰黛",
+      "aliases": [
+        "Estée Lauder",
+        "Estee Lauder",
+        "雅诗兰黛"
+      ]
+    },
+    {
+      "label": "欧莱雅",
+      "aliases": [
+        "L’Oréal",
+        "L'Oreal",
+        "L'Oreal Paris",
+        "LOreal",
+        "欧莱雅"
+      ]
+    },
+    {
+      "label": "美宝莲",
+      "aliases": [
+        "Maybelline",
+        "Maybelline New York",
+        "美宝莲"
+      ]
+    },
+    {
+      "label": "兰蔻",
+      "aliases": [
+        "Lancôme",
+        "Lancome",
+        "兰蔻"
+      ]
+    },
+    {
+      "label": "倩碧",
+      "aliases": [
+        "Clinique",
+        "倩碧"
+      ]
+    },
+    {
+      "label": "迪奥",
+      "aliases": [
+        "Dior",
+        "Christian Dior",
+        "迪奥"
+      ]
+    },
+    {
+      "label": "香奈儿",
+      "aliases": [
+        "Chanel",
+        "香奈儿"
+      ]
+    },
+    {
+      "label": "资生堂",
+      "aliases": [
+        "Shiseido",
+        "资生堂"
+      ]
+    },
+    {
+      "label": "植村秀",
+      "aliases": [
+        "Shu Uemura",
+        "植村秀"
+      ]
+    },
+    {
+      "label": "芭比波朗",
+      "aliases": [
+        "Bobbi Brown",
+        "芭比波朗"
+      ]
+    },
+    {
+      "label": "悦诗风吟",
+      "aliases": [
+        "Innisfree",
+        "悦诗风吟"
+      ]
+    },
+    {
+      "label": "妮维雅",
+      "aliases": [
+        "Nivea",
+        "妮维雅"
+      ]
+    },
+    {
+      "label": "玉兰油",
+      "aliases": [
+        "Olay",
+        "玉兰油"
+      ]
+    },
+    {
+      "label": "理肤泉",
+      "aliases": [
+        "La Roche-Posay",
+        "理肤泉"
+      ]
+    },
+    {
+      "label": "雅漾",
+      "aliases": [
+        "Avène",
+        "Avene",
+        "雅漾"
+      ]
+    },
+    {
+      "label": "适乐肤",
+      "aliases": [
+        "CeraVe",
+        "适乐肤"
+      ]
+    },
+    {
+      "label": "丝塔芙",
+      "aliases": [
+        "Cetaphil",
+        "丝塔芙"
+      ]
+    },
+    {
+      "label": "露得清",
+      "aliases": [
+        "Neutrogena",
+        "露得清"
+      ]
+    },
+    {
+      "label": "耐克",
+      "aliases": [
+        "Nike",
+        "耐克"
+      ]
+    },
+    {
+      "label": "阿迪达斯",
+      "aliases": [
+        "Adidas",
+        "阿迪达斯"
+      ]
+    },
+    {
+      "label": "优衣库",
+      "aliases": [
+        "Uniqlo",
+        "优衣库"
+      ]
+    },
+    {
+      "label": "苹果",
+      "aliases": [
+        "Apple",
+        "苹果"
+      ]
+    },
+    {
+      "label": "三星",
+      "aliases": [
+        "Samsung",
+        "三星"
+      ]
+    },
+    {
+      "label": "索尼",
+      "aliases": [
+        "Sony",
+        "索尼"
+      ]
+    },
+    {
+      "label": "戴森",
+      "aliases": [
+        "Dyson",
+        "戴森"
+      ]
+    },
+    {
+      "label": "飞利浦",
+      "aliases": [
+        "Philips",
+        "飞利浦"
+      ]
+    },
+    {
+      "label": "宜家",
+      "aliases": [
+        "IKEA",
+        "宜家"
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "label": "妆前乳",
+      "aliases": [
+        "putty primer",
+        "glow primer",
+        "face primer",
+        "makeup primer",
+        "primer",
+        "妆前乳"
+      ]
+    },
+    {
+      "label": "遮瑕膏",
+      "aliases": [
+        "concealer",
+        "遮瑕膏",
+        "遮瑕液"
+      ]
+    },
+    {
+      "label": "粉底液",
+      "aliases": [
+        "liquid foundation",
+        "foundation",
+        "粉底液"
+      ]
+    },
+    {
+      "label": "唇线笔",
+      "aliases": [
+        "lip liner",
+        "唇线笔"
+      ]
+    },
+    {
+      "label": "眼线笔",
+      "aliases": [
+        "eyeliner",
+        "eye liner",
+        "眼线笔"
+      ]
+    },
+    {
+      "label": "睫毛膏",
+      "aliases": [
+        "mascara",
+        "睫毛膏"
+      ]
+    },
+    {
+      "label": "眉笔",
+      "aliases": [
+        "eyebrow pencil",
+        "brow pencil",
+        "眉笔"
+      ]
+    },
+    {
+      "label": "眼影",
+      "aliases": [
+        "eye shadow",
+        "eyeshadow",
+        "眼影"
+      ]
+    },
+    {
+      "label": "腮红",
+      "aliases": [
+        "blush",
+        "腮红"
+      ]
+    },
+    {
+      "label": "散粉",
+      "aliases": [
+        "loose powder",
+        "setting powder",
+        "散粉"
+      ]
+    },
+    {
+      "label": "粉饼",
+      "aliases": [
+        "pressed powder",
+        "粉饼"
+      ]
+    },
+    {
+      "label": "高光粉",
+      "aliases": [
+        "highlighter",
+        "高光粉"
+      ]
+    },
+    {
+      "label": "修容粉",
+      "aliases": [
+        "contour powder",
+        "bronzer",
+        "修容粉"
+      ]
+    },
+    {
+      "label": "定妆喷雾",
+      "aliases": [
+        "setting spray",
+        "定妆喷雾"
+      ]
+    },
+    {
+      "label": "卸妆水",
+      "aliases": [
+        "micellar water",
+        "makeup remover",
+        "卸妆水"
+      ]
+    },
+    {
+      "label": "唇膏",
+      "aliases": [
+        "lip balm",
+        "润唇膏"
+      ]
+    },
+    {
+      "label": "唇釉",
+      "aliases": [
+        "lip gloss",
+        "lip tint",
+        "唇釉"
+      ]
+    },
+    {
+      "label": "口红",
+      "aliases": [
+        "lipstick",
+        "口红"
+      ]
+    },
+    {
+      "label": "洁面乳",
+      "aliases": [
+        "face wash",
+        "facial cleanser",
+        "洁面乳"
+      ]
+    },
+    {
+      "label": "防晒霜",
+      "aliases": [
+        "sunscreen",
+        "sunblock",
+        "防晒霜"
+      ]
+    },
+    {
+      "label": "精华液",
+      "aliases": [
+        "serum",
+        "精华液"
+      ]
+    },
+    {
+      "label": "面霜",
+      "aliases": [
+        "face cream",
+        "moisturizer",
+        "面霜"
+      ]
+    },
+    {
+      "label": "乳液",
+      "aliases": [
+        "body lotion",
+        "lotion",
+        "乳液"
+      ]
+    },
+    {
+      "label": "洗发水",
+      "aliases": [
+        "shampoo",
+        "洗发水"
+      ]
+    },
+    {
+      "label": "护发素",
+      "aliases": [
+        "conditioner",
+        "护发素"
+      ]
+    },
+    {
+      "label": "发膜",
+      "aliases": [
+        "hair mask",
+        "发膜"
+      ]
+    },
+    {
+      "label": "香水",
+      "aliases": [
+        "perfume",
+        "fragrance",
+        "香水"
+      ]
+    },
+    {
+      "label": "指甲油",
+      "aliases": [
+        "nail polish",
+        "指甲油"
+      ]
+    },
+    {
+      "label": "假睫毛",
+      "aliases": [
+        "false eyelashes",
+        "false lashes",
+        "假睫毛"
+      ]
+    },
+    {
+      "label": "吸奶器",
+      "aliases": [
+        "breast pump",
+        "吸奶器"
+      ]
+    },
+    {
+      "label": "尿布收纳篮",
+      "aliases": [
+        "diaper caddy",
+        "尿布收纳篮"
+      ]
+    },
+    {
+      "label": "纸尿裤",
+      "aliases": [
+        "diapers",
+        "diaper",
+        "纸尿裤"
+      ]
+    },
+    {
+      "label": "婴儿车",
+      "aliases": [
+        "stroller",
+        "婴儿车"
+      ]
+    },
+    {
+      "label": "孕妇枕",
+      "aliases": [
+        "pregnancy pillow",
+        "maternity pillow",
+        "孕妇枕"
+      ]
+    },
+    {
+      "label": "内衣",
+      "aliases": [
+        "underwear",
+        "lingerie",
+        "内衣"
+      ]
+    },
+    {
+      "label": "文胸",
+      "aliases": [
+        "bra",
+        "文胸"
+      ]
+    },
+    {
+      "label": "电解质饮料",
+      "aliases": [
+        "electrolyte drink",
+        "电解质饮料"
+      ]
+    },
+    {
+      "label": "谷物棒",
+      "aliases": [
+        "granola bars",
+        "granola bar",
+        "谷物棒"
+      ]
+    },
+    {
+      "label": "谷物零食",
+      "aliases": [
+        "granola bites",
+        "谷物零食"
+      ]
+    },
+    {
+      "label": "饼干",
+      "aliases": [
+        "cookie bites",
+        "cookies",
+        "cookie",
+        "饼干"
+      ]
+    },
+    {
+      "label": "燕麦",
+      "aliases": [
+        "oatmeal",
+        "燕麦"
+      ]
+    },
+    {
+      "label": "水杯",
+      "aliases": [
+        "tumbler",
+        "water bottle",
+        "水杯"
+      ]
+    },
+    {
+      "label": "平底锅",
+      "aliases": [
+        "frying pan",
+        "pan",
+        "平底锅"
+      ]
+    },
+    {
+      "label": "吹风机",
+      "aliases": [
+        "hair dryer",
+        "blow dryer",
+        "吹风机"
+      ]
+    },
+    {
+      "label": "卷发棒",
+      "aliases": [
+        "curling iron",
+        "curling wand",
+        "卷发棒"
+      ]
+    },
+    {
+      "label": "假发",
+      "aliases": [
+        "wig",
+        "假发"
+      ]
+    },
+    {
+      "label": "手机壳",
+      "aliases": [
+        "phone case",
+        "手机壳"
+      ]
+    },
+    {
+      "label": "耳机",
+      "aliases": [
+        "headphones",
+        "earbuds",
+        "耳机"
+      ]
+    },
+    {
+      "label": "键盘",
+      "aliases": [
+        "keyboard",
+        "键盘"
+      ]
+    },
+    {
+      "label": "运动鞋",
+      "aliases": [
+        "sneakers",
+        "运动鞋"
+      ]
+    },
+    {
+      "label": "鞋子",
+      "aliases": [
+        "shoes",
+        "鞋子"
+      ]
+    },
+    {
+      "label": "手提包",
+      "aliases": [
+        "handbag",
+        "手提包"
+      ]
+    },
+    {
+      "label": "手表",
+      "aliases": [
+        "watch",
+        "手表"
+      ]
+    }
+  ]
+}

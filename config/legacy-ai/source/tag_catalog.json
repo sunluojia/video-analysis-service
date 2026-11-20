@@ -1,0 +1,5785 @@
+{
+  "schema_version": "1.0",
+  "source_file": "达人分类标签统计.xlsx",
+  "source_sha256": "8845120c89f9e0eb3229ddf6a9d2a22645464dc4da0c6959a5dbc333298bdd09",
+  "source_rows": 643,
+  "unique_labels": 641,
+  "eligible_labels": 523,
+  "scope": "single_video_observable_content",
+  "entries": [
+    {
+      "id": "t0001",
+      "label": "体型中等",
+      "cells": [
+        "达人分类标签统计!A1"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0002",
+      "label": "日常",
+      "cells": [
+        "达人分类标签统计!A2"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0004",
+      "label": "体型偏胖",
+      "cells": [
+        "达人分类标签统计!A4"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0005",
+      "label": "养狗",
+      "cells": [
+        "达人分类标签统计!A5"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0007",
+      "label": "女装",
+      "cells": [
+        "达人分类标签统计!A7",
+        "达人分类标签统计!A600"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0008",
+      "label": "自拍",
+      "cells": [
+        "达人分类标签统计!A8"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0009",
+      "label": "美妆",
+      "cells": [
+        "达人分类标签统计!A9"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0010",
+      "label": "身材好",
+      "cells": [
+        "达人分类标签统计!A10",
+        "达人分类标签统计!A1487"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0012",
+      "label": "亲子",
+      "cells": [
+        "达人分类标签统计!A12"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0013",
+      "label": "品牌号",
+      "cells": [
+        "达人分类标签统计!A13"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0014",
+      "label": "养猫",
+      "cells": [
+        "达人分类标签统计!A14"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0015",
+      "label": "护肤",
+      "cells": [
+        "达人分类标签统计!A15"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0017",
+      "label": "健身",
+      "cells": [
+        "达人分类标签统计!A17"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0018",
+      "label": "拆卡账号",
+      "cells": [
+        "达人分类标签统计!A18"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0019",
+      "label": "体型偏瘦",
+      "cells": [
+        "达人分类标签统计!A19"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0021",
+      "label": "纯颜值",
+      "cells": [
+        "达人分类标签统计!A21"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0022",
+      "label": "跳舞",
+      "cells": [
+        "达人分类标签统计!A22"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0024",
+      "label": "亚洲面孔",
+      "cells": [
+        "达人分类标签统计!A24"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0025",
+      "label": "美甲",
+      "cells": [
+        "达人分类标签统计!A25"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0026",
+      "label": "家庭",
+      "cells": [
+        "达人分类标签统计!A26"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0027",
+      "label": "品牌",
+      "cells": [
+        "达人分类标签统计!A27"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0028",
+      "label": "口播",
+      "cells": [
+        "达人分类标签统计!A28"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0029",
+      "label": "假发",
+      "cells": [
+        "达人分类标签统计!A29"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0030",
+      "label": "保健品",
+      "cells": [
+        "达人分类标签统计!A30"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0034",
+      "label": "箱包",
+      "cells": [
+        "达人分类标签统计!A34"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0035",
+      "label": "图文",
+      "cells": [
+        "达人分类标签统计!A35"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0036",
+      "label": "服装",
+      "cells": [
+        "达人分类标签统计!A36"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0038",
+      "label": "品牌账号",
+      "cells": [
+        "达人分类标签统计!A38"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0039",
+      "label": "剪辑号",
+      "cells": [
+        "达人分类标签统计!A39"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0040",
+      "label": "香水",
+      "cells": [
+        "达人分类标签统计!A40"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0041",
+      "label": "食物",
+      "cells": [
+        "达人分类标签统计!A41"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0042",
+      "label": "对口型",
+      "cells": [
+        "达人分类标签统计!A42"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0043",
+      "label": "发型",
+      "cells": [
+        "达人分类标签统计!A43"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0045",
+      "label": "颜值",
+      "cells": [
+        "达人分类标签统计!A45"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0046",
+      "label": "男装",
+      "cells": [
+        "达人分类标签统计!A46"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0048",
+      "label": "情侣",
+      "cells": [
+        "达人分类标签统计!A48"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0052",
+      "label": "游戏",
+      "cells": [
+        "达人分类标签统计!A52"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0054",
+      "label": "头发",
+      "cells": [
+        "达人分类标签统计!A54"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0057",
+      "label": "首饰",
+      "cells": [
+        "达人分类标签统计!A57"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0059",
+      "label": "假睫毛",
+      "cells": [
+        "达人分类标签统计!A59"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0060",
+      "label": "合适",
+      "cells": [
+        "达人分类标签统计!A60"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0061",
+      "label": "私密账号",
+      "cells": [
+        "达人分类标签统计!A61"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0063",
+      "label": "卷发棒",
+      "cells": [
+        "达人分类标签统计!A63"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0064",
+      "label": "美食",
+      "cells": [
+        "达人分类标签统计!A64"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0066",
+      "label": "零食",
+      "cells": [
+        "达人分类标签统计!A66"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0067",
+      "label": "鞋子",
+      "cells": [
+        "达人分类标签统计!A67"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0068",
+      "label": "家居用品",
+      "cells": [
+        "达人分类标签统计!A68"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0069",
+      "label": "儿童玩具",
+      "cells": [
+        "达人分类标签统计!A69"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0070",
+      "label": "个人店",
+      "cells": [
+        "达人分类标签统计!A70"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0075",
+      "label": "吃播",
+      "cells": [
+        "达人分类标签统计!A75"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0076",
+      "label": "女鞋",
+      "cells": [
+        "达人分类标签统计!A76"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0077",
+      "label": "日用品",
+      "cells": [
+        "达人分类标签统计!A77"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0079",
+      "label": "妈妈和小孩",
+      "cells": [
+        "达人分类标签统计!A79"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0090",
+      "label": "鞋靴",
+      "cells": [
+        "达人分类标签统计!A90"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0092",
+      "label": "剧情演绎",
+      "cells": [
+        "达人分类标签统计!A92"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0093",
+      "label": "户外",
+      "cells": [
+        "达人分类标签统计!A93"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0097",
+      "label": "孕妇",
+      "cells": [
+        "达人分类标签统计!A97"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0098",
+      "label": "玩具",
+      "cells": [
+        "达人分类标签统计!A98"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0100",
+      "label": "风景",
+      "cells": [
+        "达人分类标签统计!A100"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0102",
+      "label": "穿搭",
+      "cells": [
+        "达人分类标签统计!A102"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0103",
+      "label": "身材",
+      "cells": [
+        "达人分类标签统计!A103"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0104",
+      "label": "卡牌",
+      "cells": [
+        "达人分类标签统计!A104"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0105",
+      "label": "手机壳",
+      "cells": [
+        "达人分类标签统计!A105"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0106",
+      "label": "护发",
+      "cells": [
+        "达人分类标签统计!A106"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0107",
+      "label": "时尚",
+      "cells": [
+        "达人分类标签统计!A107"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0109",
+      "label": "母婴",
+      "cells": [
+        "达人分类标签统计!A109"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0110",
+      "label": "电子产品",
+      "cells": [
+        "达人分类标签统计!A110"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0111",
+      "label": "塑身衣",
+      "cells": [
+        "达人分类标签统计!A111"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0113",
+      "label": "家居",
+      "cells": [
+        "达人分类标签统计!A113"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0115",
+      "label": "美发",
+      "cells": [
+        "达人分类标签统计!A115"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0118",
+      "label": "五金工具",
+      "cells": [
+        "达人分类标签统计!A118"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0119",
+      "label": "光头",
+      "cells": [
+        "达人分类标签统计!A119"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0120",
+      "label": "内衣",
+      "cells": [
+        "达人分类标签统计!A120"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0122",
+      "label": "搬运剪辑",
+      "cells": [
+        "达人分类标签统计!A122"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0124",
+      "label": "理发店",
+      "cells": [
+        "达人分类标签统计!A124"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0126",
+      "label": "视频一般",
+      "cells": [
+        "达人分类标签统计!A126"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0127",
+      "label": "女装美妆",
+      "cells": [
+        "达人分类标签统计!A127"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0128",
+      "label": "情侣账号",
+      "cells": [
+        "达人分类标签统计!A128"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0131",
+      "label": "解压玩具",
+      "cells": [
+        "达人分类标签统计!A131"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0132",
+      "label": "足球",
+      "cells": [
+        "达人分类标签统计!A132"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0134",
+      "label": "饮品零食",
+      "cells": [
+        "达人分类标签统计!A134"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0136",
+      "label": "图片",
+      "cells": [
+        "达人分类标签统计!A136"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0137",
+      "label": "手链",
+      "cells": [
+        "达人分类标签统计!A137"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0138",
+      "label": "探店",
+      "cells": [
+        "达人分类标签统计!A138"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0142",
+      "label": "水杯",
+      "cells": [
+        "达人分类标签统计!A142"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0144",
+      "label": "纹身",
+      "cells": [
+        "达人分类标签统计!A144"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0145",
+      "label": "美妆垂类",
+      "cells": [
+        "达人分类标签统计!A145"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0148",
+      "label": "个人商店",
+      "cells": [
+        "达人分类标签统计!A148"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0150",
+      "label": "其他宠物",
+      "cells": [
+        "达人分类标签统计!A150"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0152",
+      "label": "国内账号",
+      "cells": [
+        "达人分类标签统计!A152"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0154",
+      "label": "带货",
+      "cells": [
+        "达人分类标签统计!A154"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0155",
+      "label": "情侣日常",
+      "cells": [
+        "达人分类标签统计!A155"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0156",
+      "label": "情景演绎",
+      "cells": [
+        "达人分类标签统计!A156"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0159",
+      "label": "模特",
+      "cells": [
+        "达人分类标签统计!A159"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0161",
+      "label": "汽车用品",
+      "cells": [
+        "达人分类标签统计!A161"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0165",
+      "label": "个护",
+      "cells": [
+        "达人分类标签统计!A165"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0166",
+      "label": "保养",
+      "cells": [
+        "达人分类标签统计!A166"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0169",
+      "label": "啦啦队",
+      "cells": [
+        "达人分类标签统计!A169"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0171",
+      "label": "孕期",
+      "cells": [
+        "达人分类标签统计!A171"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0172",
+      "label": "工具类",
+      "cells": [
+        "达人分类标签统计!A172"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0175",
+      "label": "手表",
+      "cells": [
+        "达人分类标签统计!A175"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0176",
+      "label": "推过内衣",
+      "cells": [
+        "达人分类标签统计!A176"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0177",
+      "label": "搬运",
+      "cells": [
+        "达人分类标签统计!A177"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0179",
+      "label": "棒球",
+      "cells": [
+        "达人分类标签统计!A179"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0182",
+      "label": "直播",
+      "cells": [
+        "达人分类标签统计!A182"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0183",
+      "label": "童装",
+      "cells": [
+        "达人分类标签统计!A183"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0184",
+      "label": "美妆女装",
+      "cells": [
+        "达人分类标签统计!A184"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0189",
+      "label": "丰满",
+      "cells": [
+        "达人分类标签统计!A189"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0190",
+      "label": "书籍",
+      "cells": [
+        "达人分类标签统计!A190"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0191",
+      "label": "切片",
+      "cells": [
+        "达人分类标签统计!A191"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0192",
+      "label": "厨房用具",
+      "cells": [
+        "达人分类标签统计!A192"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0193",
+      "label": "唱歌",
+      "cells": [
+        "达人分类标签统计!A193"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0195",
+      "label": "好物推荐",
+      "cells": [
+        "达人分类标签统计!A195"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0196",
+      "label": "宠物用品",
+      "cells": [
+        "达人分类标签统计!A196"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0198",
+      "label": "家庭用品",
+      "cells": [
+        "达人分类标签统计!A198"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0200",
+      "label": "居家",
+      "cells": [
+        "达人分类标签统计!A200"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0203",
+      "label": "按摩",
+      "cells": [
+        "达人分类标签统计!A203"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0211",
+      "label": "演绎类",
+      "cells": [
+        "达人分类标签统计!A211"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0213",
+      "label": "牙医",
+      "cells": [
+        "达人分类标签统计!A213"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0214",
+      "label": "玉石",
+      "cells": [
+        "达人分类标签统计!A214"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0215",
+      "label": "理发",
+      "cells": [
+        "达人分类标签统计!A215"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0217",
+      "label": "男鞋",
+      "cells": [
+        "达人分类标签统计!A217"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0218",
+      "label": "皮肤好",
+      "cells": [
+        "达人分类标签统计!A218"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0219",
+      "label": "盲盒账号",
+      "cells": [
+        "达人分类标签统计!A219"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0220",
+      "label": "睫毛刷",
+      "cells": [
+        "达人分类标签统计!A220"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0222",
+      "label": "美妆个护",
+      "cells": [
+        "达人分类标签统计!A222"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0227",
+      "label": "饮料",
+      "cells": [
+        "达人分类标签统计!A227"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0235",
+      "label": "乐队",
+      "cells": [
+        "达人分类标签统计!A235"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0236",
+      "label": "二次元",
+      "cells": [
+        "达人分类标签统计!A236"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0237",
+      "label": "假小子",
+      "cells": [
+        "达人分类标签统计!A237"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0238",
+      "label": "做饭",
+      "cells": [
+        "达人分类标签统计!A238"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0239",
+      "label": "像个人店",
+      "cells": [
+        "达人分类标签统计!A239"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0242",
+      "label": "动画",
+      "cells": [
+        "达人分类标签统计!A242"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0243",
+      "label": "反串",
+      "cells": [
+        "达人分类标签统计!A243"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0244",
+      "label": "发型制作",
+      "cells": [
+        "达人分类标签统计!A244"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0246",
+      "label": "品牌服装",
+      "cells": [
+        "达人分类标签统计!A246"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0251",
+      "label": "夫妻账号",
+      "cells": [
+        "达人分类标签统计!A251"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0253",
+      "label": "宠物保健品",
+      "cells": [
+        "达人分类标签统计!A253"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0256",
+      "label": "情侣出镜",
+      "cells": [
+        "达人分类标签统计!A256"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0258",
+      "label": "旅游",
+      "cells": [
+        "达人分类标签统计!A258"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0264",
+      "label": "游戏手柄",
+      "cells": [
+        "达人分类标签统计!A264"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0265",
+      "label": "老师",
+      "cells": [
+        "达人分类标签统计!A265"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0266",
+      "label": "胸部丰满",
+      "cells": [
+        "达人分类标签统计!A266"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0267",
+      "label": "视频加文字",
+      "cells": [
+        "达人分类标签统计!A267"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0268",
+      "label": "视频文字",
+      "cells": [
+        "达人分类标签统计!A268"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0278",
+      "label": "保养美妆",
+      "cells": [
+        "达人分类标签统计!A278"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0280",
+      "label": "假眉毛",
+      "cells": [
+        "达人分类标签统计!A280"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0281",
+      "label": "出现过内衣",
+      "cells": [
+        "达人分类标签统计!A281"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0283",
+      "label": "剪辑",
+      "cells": [
+        "达人分类标签统计!A283"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0286",
+      "label": "印度人",
+      "cells": [
+        "达人分类标签统计!A286"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0287",
+      "label": "发型师",
+      "cells": [
+        "达人分类标签统计!A287"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0288",
+      "label": "发型相关产品",
+      "cells": [
+        "达人分类标签统计!A288"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0290",
+      "label": "品牌首饰",
+      "cells": [
+        "达人分类标签统计!A290"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0295",
+      "label": "娱乐账号",
+      "cells": [
+        "达人分类标签统计!A295"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0296",
+      "label": "家庭日常",
+      "cells": [
+        "达人分类标签统计!A296"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0297",
+      "label": "小孩",
+      "cells": [
+        "达人分类标签统计!A297"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0300",
+      "label": "帽子",
+      "cells": [
+        "达人分类标签统计!A300"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0301",
+      "label": "户外用品",
+      "cells": [
+        "达人分类标签统计!A301"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0303",
+      "label": "抽象",
+      "cells": [
+        "达人分类标签统计!A303"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0304",
+      "label": "拉拉情侣",
+      "cells": [
+        "达人分类标签统计!A304"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0305",
+      "label": "拍照",
+      "cells": [
+        "达人分类标签统计!A305"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0306",
+      "label": "摩托",
+      "cells": [
+        "达人分类标签统计!A306"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0307",
+      "label": "数码产品",
+      "cells": [
+        "达人分类标签统计!A307"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0315",
+      "label": "母婴用品",
+      "cells": [
+        "达人分类标签统计!A315"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0316",
+      "label": "演唱会",
+      "cells": [
+        "达人分类标签统计!A316"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0317",
+      "label": "演艺类",
+      "cells": [
+        "达人分类标签统计!A317"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0318",
+      "label": "牙齿",
+      "cells": [
+        "达人分类标签统计!A318"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0319",
+      "label": "理发师",
+      "cells": [
+        "达人分类标签统计!A319"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0320",
+      "label": "生活",
+      "cells": [
+        "达人分类标签统计!A320"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0326",
+      "label": "篮球",
+      "cells": [
+        "达人分类标签统计!A326"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0328",
+      "label": "线下探店",
+      "cells": [
+        "达人分类标签统计!A328"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0329",
+      "label": "综艺剪辑",
+      "cells": [
+        "达人分类标签统计!A329"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0330",
+      "label": "脏辫",
+      "cells": [
+        "达人分类标签统计!A330"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0333",
+      "label": "装修类",
+      "cells": [
+        "达人分类标签统计!A333"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0335",
+      "label": "记录生活",
+      "cells": [
+        "达人分类标签统计!A335"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0336",
+      "label": "讲故事",
+      "cells": [
+        "达人分类标签统计!A336"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0338",
+      "label": "起号",
+      "cells": [
+        "达人分类标签统计!A338"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0339",
+      "label": "车子",
+      "cells": [
+        "达人分类标签统计!A339"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0340",
+      "label": "键盘",
+      "cells": [
+        "达人分类标签统计!A340"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0346",
+      "label": "4个小孩",
+      "cells": [
+        "达人分类标签统计!A346"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0357",
+      "label": "专辑",
+      "cells": [
+        "达人分类标签统计!A357"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0358",
+      "label": "个人卖家",
+      "cells": [
+        "达人分类标签统计!A358"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0359",
+      "label": "个护美妆",
+      "cells": [
+        "达人分类标签统计!A359"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0360",
+      "label": "亚裔",
+      "cells": [
+        "达人分类标签统计!A360"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0361",
+      "label": "伤痛贴",
+      "cells": [
+        "达人分类标签统计!A361"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0362",
+      "label": "但形象一般",
+      "cells": [
+        "达人分类标签统计!A362"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0367",
+      "label": "做发型",
+      "cells": [
+        "达人分类标签统计!A367"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0369",
+      "label": "做汉堡",
+      "cells": [
+        "达人分类标签统计!A369"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0370",
+      "label": "健身器材",
+      "cells": [
+        "达人分类标签统计!A370"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0372",
+      "label": "公路加歌曲",
+      "cells": [
+        "达人分类标签统计!A372"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0375",
+      "label": "剃光头",
+      "cells": [
+        "达人分类标签统计!A375"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0376",
+      "label": "助眠",
+      "cells": [
+        "达人分类标签统计!A376"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0379",
+      "label": "卖书",
+      "cells": [
+        "达人分类标签统计!A379"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0380",
+      "label": "卫衣",
+      "cells": [
+        "达人分类标签统计!A380"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0381",
+      "label": "印度",
+      "cells": [
+        "达人分类标签统计!A381"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0382",
+      "label": "双腿残疾",
+      "cells": [
+        "达人分类标签统计!A382"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0385",
+      "label": "各种发型",
+      "cells": [
+        "达人分类标签统计!A385"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0388",
+      "label": "团体账号",
+      "cells": [
+        "达人分类标签统计!A388"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0390",
+      "label": "国内玉石账号",
+      "cells": [
+        "达人分类标签统计!A390"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0403",
+      "label": "夫妻",
+      "cells": [
+        "达人分类标签统计!A403"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0404",
+      "label": "夫妻日常",
+      "cells": [
+        "达人分类标签统计!A404"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0410",
+      "label": "女装箱包",
+      "cells": [
+        "达人分类标签统计!A410"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0412",
+      "label": "奶奶和孙女",
+      "cells": [
+        "达人分类标签统计!A412"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0413",
+      "label": "妆造",
+      "cells": [
+        "达人分类标签统计!A413"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0414",
+      "label": "妆造女装",
+      "cells": [
+        "达人分类标签统计!A414"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0415",
+      "label": "妈妈和女儿",
+      "cells": [
+        "达人分类标签统计!A415"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0416",
+      "label": "娱乐",
+      "cells": [
+        "达人分类标签统计!A416"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0418",
+      "label": "孙女跟爷爷日常",
+      "cells": [
+        "达人分类标签统计!A418"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0419",
+      "label": "学习用品",
+      "cells": [
+        "达人分类标签统计!A419"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0420",
+      "label": "宝妈",
+      "cells": [
+        "达人分类标签统计!A420"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0421",
+      "label": "客户出镜",
+      "cells": [
+        "达人分类标签统计!A421"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0425",
+      "label": "小孩子做饭",
+      "cells": [
+        "达人分类标签统计!A425"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0426",
+      "label": "小游戏",
+      "cells": [
+        "达人分类标签统计!A426"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0427",
+      "label": "工装裤",
+      "cells": [
+        "达人分类标签统计!A427"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0436",
+      "label": "年轻",
+      "cells": [
+        "达人分类标签统计!A436"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0437",
+      "label": "床上用品",
+      "cells": [
+        "达人分类标签统计!A437"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0438",
+      "label": "床垫",
+      "cells": [
+        "达人分类标签统计!A438"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0440",
+      "label": "建模跳舞",
+      "cells": [
+        "达人分类标签统计!A440"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0441",
+      "label": "弹吉他唱歌",
+      "cells": [
+        "达人分类标签统计!A441"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0442",
+      "label": "彩妆",
+      "cells": [
+        "达人分类标签统计!A442"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0445",
+      "label": "微胖",
+      "cells": [
+        "达人分类标签统计!A445"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0446",
+      "label": "戒指",
+      "cells": [
+        "达人分类标签统计!A446"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0447",
+      "label": "户外工具",
+      "cells": [
+        "达人分类标签统计!A447"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0448",
+      "label": "户外音乐节",
+      "cells": [
+        "达人分类标签统计!A448"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0451",
+      "label": "拉丁舞",
+      "cells": [
+        "达人分类标签统计!A451"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0452",
+      "label": "拍摄",
+      "cells": [
+        "达人分类标签统计!A452"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0453",
+      "label": "推香水",
+      "cells": [
+        "达人分类标签统计!A453"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0454",
+      "label": "搬运号",
+      "cells": [
+        "达人分类标签统计!A454"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0455",
+      "label": "摩托用品",
+      "cells": [
+        "达人分类标签统计!A455"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0456",
+      "label": "改造家里",
+      "cells": [
+        "达人分类标签统计!A456"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0457",
+      "label": "整容",
+      "cells": [
+        "达人分类标签统计!A457"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0458",
+      "label": "整形手术",
+      "cells": [
+        "达人分类标签统计!A458"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0459",
+      "label": "文具",
+      "cells": [
+        "达人分类标签统计!A459"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0460",
+      "label": "方向盘握把",
+      "cells": [
+        "达人分类标签统计!A460"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0461",
+      "label": "旅游日常",
+      "cells": [
+        "达人分类标签统计!A461"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0462",
+      "label": "日常亲子",
+      "cells": [
+        "达人分类标签统计!A462"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0463",
+      "label": "日常占半",
+      "cells": [
+        "达人分类标签统计!A463"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0469",
+      "label": "最新美妆视频",
+      "cells": [
+        "达人分类标签统计!A469"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0478",
+      "label": "本人出镜",
+      "cells": [
+        "达人分类标签统计!A478"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0479",
+      "label": "杯画",
+      "cells": [
+        "达人分类标签统计!A479"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0480",
+      "label": "染发",
+      "cells": [
+        "达人分类标签统计!A480"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0481",
+      "label": "植发",
+      "cells": [
+        "达人分类标签统计!A481"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0482",
+      "label": "橄榄球",
+      "cells": [
+        "达人分类标签统计!A482"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0483",
+      "label": "汽车",
+      "cells": [
+        "达人分类标签统计!A483"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0488",
+      "label": "滑板车",
+      "cells": [
+        "达人分类标签统计!A488"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0491",
+      "label": "爆炸头",
+      "cells": [
+        "达人分类标签统计!A491"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0492",
+      "label": "爆过",
+      "cells": [
+        "达人分类标签统计!A492"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0493",
+      "label": "猜歌游戏",
+      "cells": [
+        "达人分类标签统计!A493"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0494",
+      "label": "猫",
+      "cells": [
+        "达人分类标签统计!A494"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0495",
+      "label": "猫狗",
+      "cells": [
+        "达人分类标签统计!A495"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0496",
+      "label": "玉石手镯",
+      "cells": [
+        "达人分类标签统计!A496"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0497",
+      "label": "玉石账号",
+      "cells": [
+        "达人分类标签统计!A497"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0498",
+      "label": "珠宝",
+      "cells": [
+        "达人分类标签统计!A498"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0499",
+      "label": "球鞋",
+      "cells": [
+        "达人分类标签统计!A499"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0500",
+      "label": "甜品",
+      "cells": [
+        "达人分类标签统计!A500"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0503",
+      "label": "生病了",
+      "cells": [
+        "达人分类标签统计!A503"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0504",
+      "label": "电动摩托",
+      "cells": [
+        "达人分类标签统计!A504"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0505",
+      "label": "电子设备",
+      "cells": [
+        "达人分类标签统计!A505"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0508",
+      "label": "画画",
+      "cells": [
+        "达人分类标签统计!A508"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0510",
+      "label": "盲盒",
+      "cells": [
+        "达人分类标签统计!A510"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0511",
+      "label": "直发棒",
+      "cells": [
+        "达人分类标签统计!A511"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0513",
+      "label": "眼镜",
+      "cells": [
+        "达人分类标签统计!A513"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0516",
+      "label": "积木",
+      "cells": [
+        "达人分类标签统计!A516"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0517",
+      "label": "穿搭对口型",
+      "cells": [
+        "达人分类标签统计!A517"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0518",
+      "label": "篮球剪辑类",
+      "cells": [
+        "达人分类标签统计!A518"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0519",
+      "label": "素颜变全妆",
+      "cells": [
+        "达人分类标签统计!A519"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0521",
+      "label": "纯音乐",
+      "cells": [
+        "达人分类标签统计!A521"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0522",
+      "label": "纹身师",
+      "cells": [
+        "达人分类标签统计!A522"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0523",
+      "label": "线下小游戏",
+      "cells": [
+        "达人分类标签统计!A523"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0524",
+      "label": "线下推广",
+      "cells": [
+        "达人分类标签统计!A524"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0528",
+      "label": "绿植",
+      "cells": [
+        "达人分类标签统计!A528"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0532",
+      "label": "美妆占半",
+      "cells": [
+        "达人分类标签统计!A532"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0533",
+      "label": "美妆和假发",
+      "cells": [
+        "达人分类标签统计!A533"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0535",
+      "label": "美妆玩妆",
+      "cells": [
+        "达人分类标签统计!A535"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0536",
+      "label": "美妆美甲",
+      "cells": [
+        "达人分类标签统计!A536"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0540",
+      "label": "美甲店",
+      "cells": [
+        "达人分类标签统计!A540"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0541",
+      "label": "耳饰",
+      "cells": [
+        "达人分类标签统计!A541"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0542",
+      "label": "脏发处理",
+      "cells": [
+        "达人分类标签统计!A542"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0543",
+      "label": "脱口秀",
+      "cells": [
+        "达人分类标签统计!A543"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0546",
+      "label": "英语",
+      "cells": [
+        "达人分类标签统计!A546"
+      ],
+      "eligible": false,
+      "excluded_reason": "language_dimension"
+    },
+    {
+      "id": "t0547",
+      "label": "街头",
+      "cells": [
+        "达人分类标签统计!A547"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0549",
+      "label": "街头采访",
+      "cells": [
+        "达人分类标签统计!A549"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0550",
+      "label": "街拍",
+      "cells": [
+        "达人分类标签统计!A550"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0553",
+      "label": "视频光线暗",
+      "cells": [
+        "达人分类标签统计!A553"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0555",
+      "label": "视频质量好",
+      "cells": [
+        "达人分类标签统计!A555"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0558",
+      "label": "评论解说",
+      "cells": [
+        "达人分类标签统计!A558"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0559",
+      "label": "超市",
+      "cells": [
+        "达人分类标签统计!A559"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0561",
+      "label": "超市好物推荐",
+      "cells": [
+        "达人分类标签统计!A561"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0563",
+      "label": "超市活动类",
+      "cells": [
+        "达人分类标签统计!A563"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0564",
+      "label": "身材展示",
+      "cells": [
+        "达人分类标签统计!A564"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0565",
+      "label": "车",
+      "cells": [
+        "达人分类标签统计!A565"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0566",
+      "label": "车上化妆",
+      "cells": [
+        "达人分类标签统计!A566"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0568",
+      "label": "转场",
+      "cells": [
+        "达人分类标签统计!A568"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0570",
+      "label": "运动",
+      "cells": [
+        "达人分类标签统计!A570"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0573",
+      "label": "锻炼",
+      "cells": [
+        "达人分类标签统计!A573"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0574",
+      "label": "陶艺",
+      "cells": [
+        "达人分类标签统计!A574"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0575",
+      "label": "面包车改造",
+      "cells": [
+        "达人分类标签统计!A575"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0578",
+      "label": "音乐",
+      "cells": [
+        "达人分类标签统计!A578"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0579",
+      "label": "音乐相关",
+      "cells": [
+        "达人分类标签统计!A579"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0580",
+      "label": "项链",
+      "cells": [
+        "达人分类标签统计!A580"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0581",
+      "label": "颜值一般",
+      "cells": [
+        "达人分类标签统计!A581"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0582",
+      "label": "颜值自拍",
+      "cells": [
+        "达人分类标签统计!A582"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0583",
+      "label": "食物饮品",
+      "cells": [
+        "达人分类标签统计!A583"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0585",
+      "label": "麦克风音响",
+      "cells": [
+        "达人分类标签统计!A585"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0601",
+      "label": "一天五条视频左右",
+      "cells": [
+        "达人分类标签统计!A602"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0604",
+      "label": "一胖一瘦",
+      "cells": [
+        "达人分类标签统计!A605"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0605",
+      "label": "一起测评产品",
+      "cells": [
+        "达人分类标签统计!A606"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0614",
+      "label": "个人卖家品牌",
+      "cells": [
+        "达人分类标签统计!A615"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0615",
+      "label": "个人号",
+      "cells": [
+        "达人分类标签统计!A616"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0616",
+      "label": "个人品牌",
+      "cells": [
+        "达人分类标签统计!A617"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0617",
+      "label": "个人对口型",
+      "cells": [
+        "达人分类标签统计!A618"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0620",
+      "label": "个人账号",
+      "cells": [
+        "达人分类标签统计!A621"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0621",
+      "label": "中学生",
+      "cells": [
+        "达人分类标签统计!A622"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0622",
+      "label": "串珠",
+      "cells": [
+        "达人分类标签统计!A623"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0628",
+      "label": "之前健身",
+      "cells": [
+        "达人分类标签统计!A629"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0630",
+      "label": "书籍杂志",
+      "cells": [
+        "达人分类标签统计!A631"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0633",
+      "label": "书评类",
+      "cells": [
+        "达人分类标签统计!A634"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0634",
+      "label": "五金",
+      "cells": [
+        "达人分类标签统计!A635"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0636",
+      "label": "产品梗图",
+      "cells": [
+        "达人分类标签统计!A637"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0637",
+      "label": "产品测评",
+      "cells": [
+        "达人分类标签统计!A638"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0638",
+      "label": "亲子日常",
+      "cells": [
+        "达人分类标签统计!A639"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0639",
+      "label": "人体绘画",
+      "cells": [
+        "达人分类标签统计!A640"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0640",
+      "label": "人在韩国",
+      "cells": [
+        "达人分类标签统计!A641"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0642",
+      "label": "人行玩偶",
+      "cells": [
+        "达人分类标签统计!A643"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0643",
+      "label": "仅限犬类品牌合作",
+      "cells": [
+        "达人分类标签统计!A644"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0647",
+      "label": "任天堂周边产品",
+      "cells": [
+        "达人分类标签统计!A648"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0655",
+      "label": "体育老师",
+      "cells": [
+        "达人分类标签统计!A656"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0658",
+      "label": "作者出镜",
+      "cells": [
+        "达人分类标签统计!A659"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0659",
+      "label": "保健",
+      "cells": [
+        "达人分类标签统计!A660"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0661",
+      "label": "保健品及其他",
+      "cells": [
+        "达人分类标签统计!A662"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0662",
+      "label": "保健品等",
+      "cells": [
+        "达人分类标签统计!A663"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0665",
+      "label": "修理",
+      "cells": [
+        "达人分类标签统计!A666"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0667",
+      "label": "假发店",
+      "cells": [
+        "达人分类标签统计!A668"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0670",
+      "label": "假指甲",
+      "cells": [
+        "达人分类标签统计!A671"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0672",
+      "label": "假睫毛香水",
+      "cells": [
+        "达人分类标签统计!A673"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0673",
+      "label": "假钞",
+      "cells": [
+        "达人分类标签统计!A674"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0674",
+      "label": "偏丰满",
+      "cells": [
+        "达人分类标签统计!A675"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0675",
+      "label": "偏壮",
+      "cells": [
+        "达人分类标签统计!A676"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0676",
+      "label": "做娃娃",
+      "cells": [
+        "达人分类标签统计!A677"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0678",
+      "label": "健康咨询",
+      "cells": [
+        "达人分类标签统计!A679"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0679",
+      "label": "健身养生教练",
+      "cells": [
+        "达人分类标签统计!A680"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0680",
+      "label": "健身房训练日常",
+      "cells": [
+        "达人分类标签统计!A681"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0681",
+      "label": "健身男装",
+      "cells": [
+        "达人分类标签统计!A682"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0683",
+      "label": "健身相关用品",
+      "cells": [
+        "达人分类标签统计!A684"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0684",
+      "label": "健身等",
+      "cells": [
+        "达人分类标签统计!A685"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0686",
+      "label": "健身老奶奶",
+      "cells": [
+        "达人分类标签统计!A687"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0687",
+      "label": "健身补剂",
+      "cells": [
+        "达人分类标签统计!A688"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0694",
+      "label": "像个人品牌",
+      "cells": [
+        "达人分类标签统计!A695"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0698",
+      "label": "像搬运",
+      "cells": [
+        "达人分类标签统计!A699"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0700",
+      "label": "像服装网店",
+      "cells": [
+        "达人分类标签统计!A701"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0701",
+      "label": "像街头博主",
+      "cells": [
+        "达人分类标签统计!A702"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0705",
+      "label": "儿童类",
+      "cells": [
+        "达人分类标签统计!A706"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0706",
+      "label": "光线暗",
+      "cells": [
+        "达人分类标签统计!A707"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0707",
+      "label": "兔子",
+      "cells": [
+        "达人分类标签统计!A708"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0718",
+      "label": "关系暗",
+      "cells": [
+        "达人分类标签统计!A719"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0721",
+      "label": "具备一定剪辑能力",
+      "cells": [
+        "达人分类标签统计!A722"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0723",
+      "label": "养猫养狗",
+      "cells": [
+        "达人分类标签统计!A724"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0724",
+      "label": "养鱼",
+      "cells": [
+        "达人分类标签统计!A725"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0725",
+      "label": "养鸡",
+      "cells": [
+        "达人分类标签统计!A726"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0726",
+      "label": "养鸭子",
+      "cells": [
+        "达人分类标签统计!A727"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0728",
+      "label": "内衣塑形衣",
+      "cells": [
+        "达人分类标签统计!A729"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0729",
+      "label": "内衣爆款",
+      "cells": [
+        "达人分类标签统计!A730"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0730",
+      "label": "农业",
+      "cells": [
+        "达人分类标签统计!A731"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0731",
+      "label": "农场",
+      "cells": [
+        "达人分类标签统计!A732"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0732",
+      "label": "农场主",
+      "cells": [
+        "达人分类标签统计!A733"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0734",
+      "label": "净水器",
+      "cells": [
+        "达人分类标签统计!A735"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0735",
+      "label": "减肥产品",
+      "cells": [
+        "达人分类标签统计!A736"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0736",
+      "label": "减肥器械",
+      "cells": [
+        "达人分类标签统计!A737"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0737",
+      "label": "减肥日记",
+      "cells": [
+        "达人分类标签统计!A738"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0738",
+      "label": "减肥相关视频",
+      "cells": [
+        "达人分类标签统计!A739"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0741",
+      "label": "刀子",
+      "cells": [
+        "达人分类标签统计!A742"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0744",
+      "label": "切片剪辑",
+      "cells": [
+        "达人分类标签统计!A745"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0745",
+      "label": "刮胡刀",
+      "cells": [
+        "达人分类标签统计!A746"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0748",
+      "label": "剃发刀",
+      "cells": [
+        "达人分类标签统计!A749"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0749",
+      "label": "前卫",
+      "cells": [
+        "达人分类标签统计!A750"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0750",
+      "label": "动漫",
+      "cells": [
+        "达人分类标签统计!A751"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0751",
+      "label": "动漫剪辑",
+      "cells": [
+        "达人分类标签统计!A752"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0752",
+      "label": "化妆工作室",
+      "cells": [
+        "达人分类标签统计!A753"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0753",
+      "label": "医生",
+      "cells": [
+        "达人分类标签统计!A754"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0755",
+      "label": "医疗用品保健品",
+      "cells": [
+        "达人分类标签统计!A756"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0760",
+      "label": "半张脸配文案",
+      "cells": [
+        "达人分类标签统计!A761"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0761",
+      "label": "半拼接短发",
+      "cells": [
+        "达人分类标签统计!A762"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0762",
+      "label": "半身女装",
+      "cells": [
+        "达人分类标签统计!A763"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0764",
+      "label": "卖帽子",
+      "cells": [
+        "达人分类标签统计!A765"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0765",
+      "label": "卖房子",
+      "cells": [
+        "达人分类标签统计!A766"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0767",
+      "label": "卖菜谱",
+      "cells": [
+        "达人分类标签统计!A768"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0769",
+      "label": "卡套",
+      "cells": [
+        "达人分类标签统计!A770"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0771",
+      "label": "卡牌商店",
+      "cells": [
+        "达人分类标签统计!A772"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0774",
+      "label": "印度音乐",
+      "cells": [
+        "达人分类标签统计!A775"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0775",
+      "label": "卷发",
+      "cells": [
+        "达人分类标签统计!A776"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0776",
+      "label": "厨房",
+      "cells": [
+        "达人分类标签统计!A777"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0778",
+      "label": "双人出镜",
+      "cells": [
+        "达人分类标签统计!A779"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0779",
+      "label": "双胞胎舞蹈",
+      "cells": [
+        "达人分类标签统计!A780"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0783",
+      "label": "发型教程",
+      "cells": [
+        "达人分类标签统计!A784"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0785",
+      "label": "变装视频",
+      "cells": [
+        "达人分类标签统计!A786"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0798",
+      "label": "吃东西",
+      "cells": [
+        "达人分类标签统计!A799"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0803",
+      "label": "吉他",
+      "cells": [
+        "达人分类标签统计!A804"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0805",
+      "label": "吹风机",
+      "cells": [
+        "达人分类标签统计!A806"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0807",
+      "label": "咨询医疗健康",
+      "cells": [
+        "达人分类标签统计!A808"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0826",
+      "label": "哥特风妆造",
+      "cells": [
+        "达人分类标签统计!A827"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0828",
+      "label": "商场化妆品推荐",
+      "cells": [
+        "达人分类标签统计!A829"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0829",
+      "label": "商场好物推荐",
+      "cells": [
+        "达人分类标签统计!A830"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0831",
+      "label": "商家账号",
+      "cells": [
+        "达人分类标签统计!A832"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0832",
+      "label": "商店",
+      "cells": [
+        "达人分类标签统计!A833"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0834",
+      "label": "喷火手枪",
+      "cells": [
+        "达人分类标签统计!A835"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0837",
+      "label": "园艺",
+      "cells": [
+        "达人分类标签统计!A838"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0838",
+      "label": "国内卖家",
+      "cells": [
+        "达人分类标签统计!A839"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t0839",
+      "label": "国内商家",
+      "cells": [
+        "达人分类标签统计!A840"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0841",
+      "label": "国内玉石",
+      "cells": [
+        "达人分类标签统计!A842"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0844",
+      "label": "圣诞贺卡",
+      "cells": [
+        "达人分类标签统计!A845"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0845",
+      "label": "在脸上画画",
+      "cells": [
+        "达人分类标签统计!A846"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0847",
+      "label": "地毯",
+      "cells": [
+        "达人分类标签统计!A848"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0855",
+      "label": "基督科普",
+      "cells": [
+        "达人分类标签统计!A856"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0859",
+      "label": "塑身裤",
+      "cells": [
+        "达人分类标签统计!A860"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0861",
+      "label": "塔罗",
+      "cells": [
+        "达人分类标签统计!A862"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0862",
+      "label": "塔罗牌",
+      "cells": [
+        "达人分类标签统计!A863"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0863",
+      "label": "墨镜",
+      "cells": [
+        "达人分类标签统计!A864"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0885",
+      "label": "夫妻交叉出镜",
+      "cells": [
+        "达人分类标签统计!A886"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0886",
+      "label": "夫妻信宗教",
+      "cells": [
+        "达人分类标签统计!A887"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0887",
+      "label": "夫妻情侣日常",
+      "cells": [
+        "达人分类标签统计!A888"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0891",
+      "label": "头盔",
+      "cells": [
+        "达人分类标签统计!A892"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0892",
+      "label": "夸张妆容",
+      "cells": [
+        "达人分类标签统计!A893"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0893",
+      "label": "奇异饮品食物",
+      "cells": [
+        "达人分类标签统计!A894"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0894",
+      "label": "奇装异服",
+      "cells": [
+        "达人分类标签统计!A895"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0895",
+      "label": "女同性恋",
+      "cells": [
+        "达人分类标签统计!A896"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0897",
+      "label": "女性",
+      "cells": [
+        "达人分类标签统计!A898"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0898",
+      "label": "女性化",
+      "cells": [
+        "达人分类标签统计!A899"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0904",
+      "label": "女装和童装",
+      "cells": [
+        "达人分类标签统计!A905"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0906",
+      "label": "女装打扮",
+      "cells": [
+        "达人分类标签统计!A907"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0915",
+      "label": "妆容",
+      "cells": [
+        "达人分类标签统计!A916"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0916",
+      "label": "妈妈和女儿跳舞",
+      "cells": [
+        "达人分类标签统计!A917"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0920",
+      "label": "娱乐主播",
+      "cells": [
+        "达人分类标签统计!A921"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0922",
+      "label": "婴儿",
+      "cells": [
+        "达人分类标签统计!A923"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0923",
+      "label": "婴儿床",
+      "cells": [
+        "达人分类标签统计!A924"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0925",
+      "label": "学习",
+      "cells": [
+        "达人分类标签统计!A926"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0927",
+      "label": "宗教神学类",
+      "cells": [
+        "达人分类标签统计!A928"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0928",
+      "label": "宗教视频",
+      "cells": [
+        "达人分类标签统计!A929"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0931",
+      "label": "实拍",
+      "cells": [
+        "达人分类标签统计!A932"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0932",
+      "label": "宠物产品测评",
+      "cells": [
+        "达人分类标签统计!A933"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0934",
+      "label": "家具",
+      "cells": [
+        "达人分类标签统计!A935"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0938",
+      "label": "家居好物",
+      "cells": [
+        "达人分类标签统计!A939"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0939",
+      "label": "家居摆设类",
+      "cells": [
+        "达人分类标签统计!A940"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0940",
+      "label": "家居日用",
+      "cells": [
+        "达人分类标签统计!A941"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0942",
+      "label": "家庭主妇",
+      "cells": [
+        "达人分类标签统计!A943"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0945",
+      "label": "家庭亲子",
+      "cells": [
+        "达人分类标签统计!A946"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0948",
+      "label": "家庭跑步机",
+      "cells": [
+        "达人分类标签统计!A949"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t0949",
+      "label": "家装建材类",
+      "cells": [
+        "达人分类标签统计!A950"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0953",
+      "label": "小孩发型",
+      "cells": [
+        "达人分类标签统计!A954"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0955",
+      "label": "小孩日常",
+      "cells": [
+        "达人分类标签统计!A956"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0959",
+      "label": "小说",
+      "cells": [
+        "达人分类标签统计!A960"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0971",
+      "label": "工具测评",
+      "cells": [
+        "达人分类标签统计!A972"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0972",
+      "label": "工厂工具类",
+      "cells": [
+        "达人分类标签统计!A973"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0973",
+      "label": "工艺品",
+      "cells": [
+        "达人分类标签统计!A974"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t0974",
+      "label": "巫术类",
+      "cells": [
+        "达人分类标签统计!A975"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1027",
+      "label": "年代好物",
+      "cells": [
+        "达人分类标签统计!A1028"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1029",
+      "label": "年轻夫妻",
+      "cells": [
+        "达人分类标签统计!A1030"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1030",
+      "label": "年轻男孩",
+      "cells": [
+        "达人分类标签统计!A1031"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1031",
+      "label": "建模动画",
+      "cells": [
+        "达人分类标签统计!A1032"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1032",
+      "label": "建筑",
+      "cells": [
+        "达人分类标签统计!A1033"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1034",
+      "label": "开车",
+      "cells": [
+        "达人分类标签统计!A1035"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1036",
+      "label": "影视剪辑",
+      "cells": [
+        "达人分类标签统计!A1037"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1041",
+      "label": "恶搞棒球比赛",
+      "cells": [
+        "达人分类标签统计!A1042"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1042",
+      "label": "情侣剧情演绎",
+      "cells": [
+        "达人分类标签统计!A1043"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1043",
+      "label": "情侣带货",
+      "cells": [
+        "达人分类标签统计!A1044"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1044",
+      "label": "情侣自拍",
+      "cells": [
+        "达人分类标签统计!A1045"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1045",
+      "label": "情侣视频",
+      "cells": [
+        "达人分类标签统计!A1046"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1046",
+      "label": "情景演练",
+      "cells": [
+        "达人分类标签统计!A1047"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1050",
+      "label": "户外泳池",
+      "cells": [
+        "达人分类标签统计!A1051"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1051",
+      "label": "户外活动",
+      "cells": [
+        "达人分类标签统计!A1052"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1052",
+      "label": "户外游玩",
+      "cells": [
+        "达人分类标签统计!A1053"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1053",
+      "label": "户外灯",
+      "cells": [
+        "达人分类标签统计!A1054"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1054",
+      "label": "户外照片",
+      "cells": [
+        "达人分类标签统计!A1055"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1055",
+      "label": "户外自拍",
+      "cells": [
+        "达人分类标签统计!A1056"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1056",
+      "label": "户外装备",
+      "cells": [
+        "达人分类标签统计!A1057"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1059",
+      "label": "户外运动类",
+      "cells": [
+        "达人分类标签统计!A1060"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1061",
+      "label": "房产",
+      "cells": [
+        "达人分类标签统计!A1062"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1062",
+      "label": "手办",
+      "cells": [
+        "达人分类标签统计!A1063"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1065",
+      "label": "手套",
+      "cells": [
+        "达人分类标签统计!A1066"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1067",
+      "label": "手饰",
+      "cells": [
+        "达人分类标签统计!A1068"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1068",
+      "label": "打扫",
+      "cells": [
+        "达人分类标签统计!A1069"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1072",
+      "label": "折叠收纳柜",
+      "cells": [
+        "达人分类标签统计!A1073"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1073",
+      "label": "护发产品",
+      "cells": [
+        "达人分类标签统计!A1074"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1075",
+      "label": "护发素",
+      "cells": [
+        "达人分类标签统计!A1076"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1085",
+      "label": "抽象整活",
+      "cells": [
+        "达人分类标签统计!A1086"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1087",
+      "label": "拆卡",
+      "cells": [
+        "达人分类标签统计!A1088"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1090",
+      "label": "拖鞋",
+      "cells": [
+        "达人分类标签统计!A1091"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1091",
+      "label": "拼豆",
+      "cells": [
+        "达人分类标签统计!A1092"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1092",
+      "label": "指甲油",
+      "cells": [
+        "达人分类标签统计!A1093"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1093",
+      "label": "按摩师",
+      "cells": [
+        "达人分类标签统计!A1094"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1094",
+      "label": "排球",
+      "cells": [
+        "达人分类标签统计!A1095"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1095",
+      "label": "搞笑类",
+      "cells": [
+        "达人分类标签统计!A1096"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1097",
+      "label": "摇滚",
+      "cells": [
+        "达人分类标签统计!A1098"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1098",
+      "label": "摔跤比赛",
+      "cells": [
+        "达人分类标签统计!A1099"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1115",
+      "label": "文件夹",
+      "cells": [
+        "达人分类标签统计!A1116"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1116",
+      "label": "文胸",
+      "cells": [
+        "达人分类标签统计!A1117"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1118",
+      "label": "旅游攻略",
+      "cells": [
+        "达人分类标签统计!A1119"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1137",
+      "label": "时尚饰品",
+      "cells": [
+        "达人分类标签统计!A1138"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1138",
+      "label": "昆虫涂鸦",
+      "cells": [
+        "达人分类标签统计!A1139"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1139",
+      "label": "星巴克制作",
+      "cells": [
+        "达人分类标签统计!A1140"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1192",
+      "label": "服装展示",
+      "cells": [
+        "达人分类标签统计!A1193"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1202",
+      "label": "机车视频",
+      "cells": [
+        "达人分类标签统计!A1203"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1203",
+      "label": "染发工具类",
+      "cells": [
+        "达人分类标签统计!A1204"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1204",
+      "label": "染发店",
+      "cells": [
+        "达人分类标签统计!A1205"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1205",
+      "label": "榨汁机",
+      "cells": [
+        "达人分类标签统计!A1206"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1207",
+      "label": "橄榄球剪辑",
+      "cells": [
+        "达人分类标签统计!A1208"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1208",
+      "label": "橄榄球运动员",
+      "cells": [
+        "达人分类标签统计!A1209"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1209",
+      "label": "母女日常",
+      "cells": [
+        "达人分类标签统计!A1210"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1211",
+      "label": "毯子",
+      "cells": [
+        "达人分类标签统计!A1212"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1212",
+      "label": "水平仪",
+      "cells": [
+        "达人分类标签统计!A1213"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1213",
+      "label": "水杯饮品",
+      "cells": [
+        "达人分类标签统计!A1214"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1214",
+      "label": "汽车烟雾机品牌",
+      "cells": [
+        "达人分类标签统计!A1215"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1226",
+      "label": "泰语",
+      "cells": [
+        "达人分类标签统计!A1227"
+      ],
+      "eligible": false,
+      "excluded_reason": "language_dimension"
+    },
+    {
+      "id": "t1227",
+      "label": "洗头",
+      "cells": [
+        "达人分类标签统计!A1228"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1229",
+      "label": "海军",
+      "cells": [
+        "达人分类标签统计!A1230"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1230",
+      "label": "海边",
+      "cells": [
+        "达人分类标签统计!A1231"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1231",
+      "label": "消防员",
+      "cells": [
+        "达人分类标签统计!A1232"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1232",
+      "label": "润唇",
+      "cells": [
+        "达人分类标签统计!A1233"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1233",
+      "label": "混剪",
+      "cells": [
+        "达人分类标签统计!A1234"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1234",
+      "label": "清理庭院",
+      "cells": [
+        "达人分类标签统计!A1235"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1235",
+      "label": "游乐园",
+      "cells": [
+        "达人分类标签统计!A1236"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1236",
+      "label": "游乐设施",
+      "cells": [
+        "达人分类标签统计!A1237"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1237",
+      "label": "游戏宅",
+      "cells": [
+        "达人分类标签统计!A1238"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1238",
+      "label": "游戏解说",
+      "cells": [
+        "达人分类标签统计!A1239"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1239",
+      "label": "游戏设备",
+      "cells": [
+        "达人分类标签统计!A1240"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1242",
+      "label": "漫画",
+      "cells": [
+        "达人分类标签统计!A1243"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1244",
+      "label": "点评",
+      "cells": [
+        "达人分类标签统计!A1245"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1245",
+      "label": "烟管",
+      "cells": [
+        "达人分类标签统计!A1246"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1246",
+      "label": "熨发夹",
+      "cells": [
+        "达人分类标签统计!A1247"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1247",
+      "label": "牙齿矫正相关",
+      "cells": [
+        "达人分类标签统计!A1248"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1249",
+      "label": "牛仔裤",
+      "cells": [
+        "达人分类标签统计!A1250"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1252",
+      "label": "狗狗日常",
+      "cells": [
+        "达人分类标签统计!A1253"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1253",
+      "label": "狗盆",
+      "cells": [
+        "达人分类标签统计!A1254"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1254",
+      "label": "狗饭",
+      "cells": [
+        "达人分类标签统计!A1255"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1255",
+      "label": "猫咪耳螨",
+      "cells": [
+        "达人分类标签统计!A1256"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1256",
+      "label": "猫窝",
+      "cells": [
+        "达人分类标签统计!A1257"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1258",
+      "label": "玩妆",
+      "cells": [
+        "达人分类标签统计!A1259"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1260",
+      "label": "理疗解说",
+      "cells": [
+        "达人分类标签统计!A1261"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1261",
+      "label": "瑜伽",
+      "cells": [
+        "达人分类标签统计!A1262"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1262",
+      "label": "甜品制作",
+      "cells": [
+        "达人分类标签统计!A1263"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1263",
+      "label": "生发",
+      "cells": [
+        "达人分类标签统计!A1264"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1264",
+      "label": "生活小技巧",
+      "cells": [
+        "达人分类标签统计!A1265"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1268",
+      "label": "生活记录",
+      "cells": [
+        "达人分类标签统计!A1269"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1269",
+      "label": "电动自行车",
+      "cells": [
+        "达人分类标签统计!A1270"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1270",
+      "label": "电动车",
+      "cells": [
+        "达人分类标签统计!A1271"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1271",
+      "label": "电动配件",
+      "cells": [
+        "达人分类标签统计!A1272"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1273",
+      "label": "电子测评",
+      "cells": [
+        "达人分类标签统计!A1274"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1275",
+      "label": "电脑相关产品",
+      "cells": [
+        "达人分类标签统计!A1276"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1276",
+      "label": "男性",
+      "cells": [
+        "达人分类标签统计!A1277"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1279",
+      "label": "男性美妆",
+      "cells": [
+        "达人分类标签统计!A1280"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1281",
+      "label": "男扮女装",
+      "cells": [
+        "达人分类标签统计!A1282"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1282",
+      "label": "男生卖女装",
+      "cells": [
+        "达人分类标签统计!A1283"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1285",
+      "label": "男生穿女装",
+      "cells": [
+        "达人分类标签统计!A1286"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1296",
+      "label": "画面清晰",
+      "cells": [
+        "达人分类标签统计!A1297"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1308",
+      "label": "疗愈类",
+      "cells": [
+        "达人分类标签统计!A1309"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1310",
+      "label": "益智类小游戏",
+      "cells": [
+        "达人分类标签统计!A1311"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1312",
+      "label": "直发",
+      "cells": [
+        "达人分类标签统计!A1313"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1331",
+      "label": "眉笔",
+      "cells": [
+        "达人分类标签统计!A1332"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1333",
+      "label": "眼妆",
+      "cells": [
+        "达人分类标签统计!A1334"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1334",
+      "label": "睡衣",
+      "cells": [
+        "达人分类标签统计!A1335"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1335",
+      "label": "睫毛",
+      "cells": [
+        "达人分类标签统计!A1336"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1336",
+      "label": "睫毛膏",
+      "cells": [
+        "达人分类标签统计!A1337"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1339",
+      "label": "短发",
+      "cells": [
+        "达人分类标签统计!A1341"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1340",
+      "label": "磨刀机",
+      "cells": [
+        "达人分类标签统计!A1342"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1341",
+      "label": "种花种草",
+      "cells": [
+        "达人分类标签统计!A1343"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1342",
+      "label": "科技工具家居好物",
+      "cells": [
+        "达人分类标签统计!A1344"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1343",
+      "label": "科普动画",
+      "cells": [
+        "达人分类标签统计!A1345"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1344",
+      "label": "科普视频",
+      "cells": [
+        "达人分类标签统计!A1346"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1345",
+      "label": "穿戴",
+      "cells": [
+        "达人分类标签统计!A1347"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1347",
+      "label": "穿搭偏男性",
+      "cells": [
+        "达人分类标签统计!A1349"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1349",
+      "label": "穿搭展示",
+      "cells": [
+        "达人分类标签统计!A1351"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1350",
+      "label": "箱包女鞋",
+      "cells": [
+        "达人分类标签统计!A1352"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1355",
+      "label": "粉色系",
+      "cells": [
+        "达人分类标签统计!A1357"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1356",
+      "label": "精致妈妈",
+      "cells": [
+        "达人分类标签统计!A1358"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1361",
+      "label": "线下餐饮引流",
+      "cells": [
+        "达人分类标签统计!A1363"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1367",
+      "label": "绿化工人",
+      "cells": [
+        "达人分类标签统计!A1369"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1368",
+      "label": "美发店",
+      "cells": [
+        "达人分类标签统计!A1370"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1371",
+      "label": "美好生活",
+      "cells": [
+        "达人分类标签统计!A1373"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1376",
+      "label": "美妆产品",
+      "cells": [
+        "达人分类标签统计!A1378"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1386",
+      "label": "美容产品",
+      "cells": [
+        "达人分类标签统计!A1388"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1389",
+      "label": "美甲箱包",
+      "cells": [
+        "达人分类标签统计!A1391"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1392",
+      "label": "美瞳",
+      "cells": [
+        "达人分类标签统计!A1394"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1393",
+      "label": "美食制作",
+      "cells": [
+        "达人分类标签统计!A1395"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1396",
+      "label": "耳机",
+      "cells": [
+        "达人分类标签统计!A1398"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1397",
+      "label": "耳环",
+      "cells": [
+        "达人分类标签统计!A1399"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1401",
+      "label": "背景简洁",
+      "cells": [
+        "达人分类标签统计!A1403"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1404",
+      "label": "胖",
+      "cells": [
+        "达人分类标签统计!A1406"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1405",
+      "label": "胡子修正",
+      "cells": [
+        "达人分类标签统计!A1407"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1406",
+      "label": "胸部丰满",
+      "cells": [
+        "达人分类标签统计!A1408"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1408",
+      "label": "腿部残疾",
+      "cells": [
+        "达人分类标签统计!A1410"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1409",
+      "label": "臀部丰满",
+      "cells": [
+        "达人分类标签统计!A1411"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1419",
+      "label": "自然疗愈类",
+      "cells": [
+        "达人分类标签统计!A1421"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1420",
+      "label": "艺术家",
+      "cells": [
+        "达人分类标签统计!A1422"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1421",
+      "label": "节目",
+      "cells": [
+        "达人分类标签统计!A1423"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1423",
+      "label": "草药贴",
+      "cells": [
+        "达人分类标签统计!A1425"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1424",
+      "label": "药剂师测评",
+      "cells": [
+        "达人分类标签统计!A1426"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1425",
+      "label": "蜡烛",
+      "cells": [
+        "达人分类标签统计!A1427"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1428",
+      "label": "被单",
+      "cells": [
+        "达人分类标签统计!A1430"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1429",
+      "label": "裤子",
+      "cells": [
+        "达人分类标签统计!A1431"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1431",
+      "label": "西语",
+      "cells": [
+        "达人分类标签统计!A1433"
+      ],
+      "eligible": false,
+      "excluded_reason": "language_dimension"
+    },
+    {
+      "id": "t1433",
+      "label": "观点",
+      "cells": [
+        "达人分类标签统计!A1435"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1435",
+      "label": "视频偏生活化",
+      "cells": [
+        "达人分类标签统计!A1437"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1443",
+      "label": "视频暗黑元素",
+      "cells": [
+        "达人分类标签统计!A1445"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1444",
+      "label": "视频生活气息浓郁",
+      "cells": [
+        "达人分类标签统计!A1446"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1458",
+      "label": "解压活动",
+      "cells": [
+        "达人分类标签统计!A1460"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1462",
+      "label": "讲解车",
+      "cells": [
+        "达人分类标签统计!A1464"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1463",
+      "label": "访谈",
+      "cells": [
+        "达人分类标签统计!A1465"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1464",
+      "label": "评论",
+      "cells": [
+        "达人分类标签统计!A1466"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1468",
+      "label": "说唱节目",
+      "cells": [
+        "达人分类标签统计!A1470"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1471",
+      "label": "豆豆贴",
+      "cells": [
+        "达人分类标签统计!A1473"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1475",
+      "label": "超市购物折扣",
+      "cells": [
+        "达人分类标签统计!A1477"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1476",
+      "label": "越南语",
+      "cells": [
+        "达人分类标签统计!A1478"
+      ],
+      "eligible": false,
+      "excluded_reason": "language_dimension"
+    },
+    {
+      "id": "t1477",
+      "label": "跑车",
+      "cells": [
+        "达人分类标签统计!A1479"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1489",
+      "label": "车内",
+      "cells": [
+        "达人分类标签统计!A1492"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1492",
+      "label": "车内美妆视频",
+      "cells": [
+        "达人分类标签统计!A1495"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1498",
+      "label": "运动健身类",
+      "cells": [
+        "达人分类标签统计!A1501"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1499",
+      "label": "运动员",
+      "cells": [
+        "达人分类标签统计!A1502"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1500",
+      "label": "运动器械",
+      "cells": [
+        "达人分类标签统计!A1503"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1501",
+      "label": "运动相关产品",
+      "cells": [
+        "达人分类标签统计!A1504"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1505",
+      "label": "迪士尼",
+      "cells": [
+        "达人分类标签统计!A1508"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1519",
+      "label": "配音视频",
+      "cells": [
+        "达人分类标签统计!A1522"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1520",
+      "label": "配饰",
+      "cells": [
+        "达人分类标签统计!A1523"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1522",
+      "label": "野外装备",
+      "cells": [
+        "达人分类标签统计!A1525"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1523",
+      "label": "钓鱼",
+      "cells": [
+        "达人分类标签统计!A1526"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1524",
+      "label": "钻戒",
+      "cells": [
+        "达人分类标签统计!A1527"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1525",
+      "label": "键盘及电子产品",
+      "cells": [
+        "达人分类标签统计!A1528"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1527",
+      "label": "长发",
+      "cells": [
+        "达人分类标签统计!A1530"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1529",
+      "label": "露半张脸",
+      "cells": [
+        "达人分类标签统计!A1532"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1531",
+      "label": "鞋垫",
+      "cells": [
+        "达人分类标签统计!A1534"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1533",
+      "label": "鞋柜商店",
+      "cells": [
+        "达人分类标签统计!A1536"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_account_history_or_unverifiable_judgment"
+    },
+    {
+      "id": "t1540",
+      "label": "颜值视频",
+      "cells": [
+        "达人分类标签统计!A1543"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1546",
+      "label": "食品饮料",
+      "cells": [
+        "达人分类标签统计!A1549"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1550",
+      "label": "食物鞋靴",
+      "cells": [
+        "达人分类标签统计!A1553"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1551",
+      "label": "餐车热狗制作",
+      "cells": [
+        "达人分类标签统计!A1554"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1552",
+      "label": "饮品保健品",
+      "cells": [
+        "达人分类标签统计!A1555"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1554",
+      "label": "饮料零食被子",
+      "cells": [
+        "达人分类标签统计!A1557"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1559",
+      "label": "香水面膜",
+      "cells": [
+        "达人分类标签统计!A1562"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1562",
+      "label": "魔术",
+      "cells": [
+        "达人分类标签统计!A1565"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1563",
+      "label": "鸡饲料",
+      "cells": [
+        "达人分类标签统计!A1566"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1564",
+      "label": "鹦鹉",
+      "cells": [
+        "达人分类标签统计!A1567"
+      ],
+      "eligible": true,
+      "excluded_reason": null
+    },
+    {
+      "id": "t1565",
+      "label": "黑人家庭",
+      "cells": [
+        "达人分类标签统计!A1568"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    },
+    {
+      "id": "t1566",
+      "label": "黑人舞团",
+      "cells": [
+        "达人分类标签统计!A1569"
+      ],
+      "eligible": false,
+      "excluded_reason": "requires_identity_or_personal_context"
+    }
+  ],
+  "source_original_rows": 1569,
+  "source_original_unique_labels": 1566,
+  "cleanup_policy_version": "2026-10-12.9"
+}

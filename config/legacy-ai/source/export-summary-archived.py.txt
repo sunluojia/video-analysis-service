@@ -1,0 +1,163 @@
+"""Archived rule output for compatibility tests; Excel uses type_summary now."""
+import re
+
+from .product_summary import CLOTHING_TYPES, product_context, product_type
+from .tag_summary import is_topic, order_tags, text_summary
+from .export_type_rules import LIGHT_TYPES, content_name, excluded_content_label, label_name, specific_type_name
+
+SUMMARY_RULE_VERSION = '2026-11-10-export-types-v5-category-topics-sizes'
+
+
+_PET_NAMES = {'猫', '狗', '猫狗', '鹦鹉', '鸟', '兔子', '仓鼠', '乌龟', '蜥蜴', '鱼', '豚鼠'}
+_ALIASES = {'日常': '生活记录', '日常生活': '生活记录', '生活日常': '生活记录', '日常记录': '生活记录',
+            '猫咪': '猫', '小猫': '猫', '狗狗': '狗', '小狗': '狗', '兔': '兔子'}
+_FALLBACK_SCENES = {'其他室内', '其他户外', '其他室内场景', '其他户外场景', '其他场景'}
+_PEOPLE_COUNT = re.compile(r'([1-9][0-9]*)人出镜')
+# Only these confirmed equivalents cross the recognition/topic boundary.
+# Other topics retain their original meaning and wording.
+_TYPE_ALIASES = {'热转印': '热转印机', '热转印机': '热转印机',
+                 '萌宠': '宠物', '宠物': '宠物', '运动记录': '运动', '运动': '运动',
+                 '毛绒玩具': '玩具', '玩具': '玩具',
+                 '美发': '美发', '美发工具': '美发', '美发用品': '美发'}
+_EXCLUDED_LABELS = {'未识别中文品类', '热门内容', '趋势', '为你推荐', '热门视频', '推荐页', '推荐页シ', '热门', '其他',
+                    '创作者搜索洞察'}
+_EXCLUDED_CREATOR_TOPICS = {'内容创作者', '创作者必备'}
+
+
+def excluded_label(tag):
+    """Filter non-content labels; structured product sizes are added separately."""
+    from video_analyzer.product_sizes import is_bare_size
+    name = content_name(tag)
+    if name in _EXCLUDED_LABELS:
+        return True
+    if excluded_content_label(tag) or is_bare_size(tag):
+        return True
+    # Platform names may appear anywhere, with or without a topic marker.
+    compact = re.sub(r'\s+', '', name).casefold()
+    if 'tiktok' in compact or 'capcut' in compact:
+        return True
+    if is_topic(tag) and compact in _EXCLUDED_CREATOR_TOPICS:
+        return True
+    # Digits, spaces and punctuation do not make an English phrase a Chinese
+    # content type. Keep mixed-script labels such as M码 and iPhone手机壳.
+    letters = [character for character in compact if character.isalpha()]
+    return bool(letters) and all('a' <= character <= 'z' for character in letters)
+
+
+def _type_name(tag, womens_context=False, known_products=None):
+    name = content_name(tag)
+    product = _TYPE_ALIASES.get(name) or product_type(name, womens_context, known_products)
+    value = _ALIASES.get(product, _TYPE_ALIASES.get(product, product))
+    return specific_type_name(tag) or (label_name(tag) if value == name else value)
+
+
+def summarize_types(video_tags, product_items=()):
+    from video_analyzer.product_sizes import product_size_tags
+    product_items = list(product_items)
+    source_text, source_counts = text_summary(video_tags)
+    parts = {}
+    for tag in source_text:
+        topics = re.findall(r'[#＃][^#＃]+', tag)
+        parts[tag] = topics if tag.lstrip().startswith(('#', '＃')) and len(topics) > 1 else [tag]
+    video_tags = [[part for tag in tags if tag in parts for part in parts[tag]] for tags in video_tags]
+    text, counts = text_summary(video_tags)
+    known_products, product_issues = product_context(product_items, include_issues=True)
+    context = {content_name(tag) for tag in text if not excluded_label(tag)}
+    womens_context = bool(context & {'女装', '女装套装', '女装服饰'})
+    types = {tag: _type_name(tag, womens_context, known_products) for tag in text}
+    valid_types = {types[tag] for tag in text if not excluded_label(tag)}
+    if '派对装饰' in valid_types:
+        types = {tag: '派对装饰' if value == '圣诞装饰' else value for tag, value in types.items()}
+    has_specific_light = bool(valid_types & LIGHT_TYPES) or any(
+        content_name(tag) != '灯' and content_name(tag).endswith(('灯', '灯串'))
+        for tag in text if not excluded_label(tag))
+    topics = [tag for tag in text if is_topic(tag) and not excluded_label(tag)
+              and types[tag] != '有美甲' and not (types[tag] == '灯' and has_specific_light)]
+    topic_names = {}
+    for tag in topics:
+        key = types[tag]
+        topic_names.setdefault(key, '#' + key if '#' not in key else tag)
+    topics = order_tags([topic_names[types[tag]] for tag in topics])
+    products = {product_type(tag, womens_context, known_products) for tag in context | set(topic_names)}
+    has_specific_clothing = bool(products & (CLOTHING_TYPES - {'服装'}))
+    people_counts = {int(match[1]) for tag in text if (match := _PEOPLE_COUNT.fullmatch(tag))}
+    merge_people_counts = len(people_counts) > 1
+    candidates = {}
+    reasons = {}
+    for tag in text:
+        if excluded_label(tag):
+            candidates[tag], reasons[tag] = None, ('无效标签过滤', '删除时间、节日、年龄话题、滤镜话题、引流、纯英文或裸尺码；正常年龄段保留')
+        elif types[tag] == '灯' and has_specific_light:
+            candidates[tag], reasons[tag] = None, ('灯具去泛类', '已有明确灯具品类，删除泛词灯，具体灯具分别保留')
+        elif types[tag] == '有美甲':
+            candidates[tag], reasons[tag] = '有美甲', ('美甲归并', '有美甲、美甲及美甲话题统一为有美甲；美甲商品另行保留')
+        elif is_topic(tag):
+            target = topic_names.get(types[tag], tag)
+            candidates[tag], reasons[tag] = target, ('话题按品类归并', '不同商品分别保留，同一品类去品牌与修饰词，保留统一话题')
+        elif tag == '商品（待归类）':
+            candidates[tag], reasons[tag] = None, ('商品原词保留', '删除历史兜底标签，实际商品原词按各自规则保留')
+        elif merge_people_counts and _PEOPLE_COUNT.fullmatch(tag):
+            candidates[tag], reasons[tag] = '多人出镜', ('出镜人数归并', '汇总出现两个及以上不同的出镜人数，统一为多人出镜')
+        elif merge_people_counts and tag == '多人':
+            candidates[tag], reasons[tag] = None, ('出镜人数归并', '已有统一的多人出镜，移除重复泛词多人')
+        elif types[tag] in topic_names:
+            candidates[tag], reasons[tag] = topic_names[types[tag]], ('同名优先话题', '普通标签与话题按同一品类归并，保留带#版本')
+        elif tag in _FALLBACK_SCENES:
+            candidates[tag], reasons[tag] = None, ('场景去兜底', '删除兜底场景，不替代或删除明确地点')
+        elif tag == '时尚':
+            candidates[tag], reasons[tag] = None, ('近义词归并', '删除信息过泛的普通标签；不同穿搭风格仍分别保留')
+        elif tag in {'服装', '时尚服装'} and has_specific_clothing:
+            candidates[tag], reasons[tag] = None, ('商品分别保留', '已有明确服装品类，删除被覆盖的泛词')
+        else:
+            product = _TYPE_ALIASES.get(tag) or product_type(tag, womens_context, known_products)
+            value = types[tag]
+            candidates[tag] = value
+            if tag in _TYPE_ALIASES and value != tag or value != product:
+                reasons[tag] = ('近义词归并', '统一已确认的近义表达')
+            elif product != tag:
+                reasons[tag] = ('商品归品类', '去用途、造型、IP、套装及颜色材质等细分，统一到商品大类')
+            else:
+                reasons[tag] = ('不同维度保留', '没有命中明确删除规则，保留其原有信息')
+            if tag in product_issues and value == tag:
+                reasons[tag] = ('商品原词保留', product_issues[tag] + '；保留原标签')
+    species = {value for value in candidates.values() if value in _PET_NAMES}
+    combine_cats_dogs = {'猫', '狗'} <= species or '猫狗' in species
+    for tag, value in candidates.items():
+        if is_topic(tag) or value is None or is_topic(value):
+            continue
+        if value in {'宠物', '萌宠'} and species:
+            candidates[tag], reasons[tag] = None, ('宠物保留种类', '已有具体宠物种类，删除泛化标签；数量另行保留')
+        elif combine_cats_dogs and value in {'猫', '狗'}:
+            candidates[tag], reasons[tag] = '猫狗', ('宠物保留种类', '猫和狗统一为猫狗，其他动物种类不拼接')
+        # A detail can canonicalize into an already protected topic.
+        if candidates[tag] in topic_names:
+            candidates[tag] = topic_names[candidates[tag]]
+            reasons[tag] = ('同名优先话题',
+                '商品去颜色、用途、造型、IP、套装等细分归大类后，与话题同名，保留带#版本'
+                if reasons[tag][0] == '商品归品类' else '归并后的品类与话题同名，保留带#版本')
+    # Keep protected topics in their original relative order, even when an
+    # earlier plain word canonicalizes into a topic later in the input.
+    typed = order_tags([value for value in candidates.values() if value is not None and not is_topic(value)]
+                       + [tag for tag in product_size_tags(product_items) if not excluded_label(tag)] + topics)
+    removed = [tag for tag in source_text if tag not in typed]
+    added = [tag for tag in typed if tag not in source_text]
+    decisions = []
+    for tag in source_text:
+        targets = order_tags([candidates[part] for part in parts[tag] if candidates[part] is not None])
+        target = '、'.join(targets)
+        rule, reason = (reasons[tag] if len(parts[tag]) == 1 else
+                        ('话题拆分归并', '相邻话题分别按品类处理，同类合并，不同商品分别保留'))
+        decisions.append({'original': tag, 'target': target or '', 'action': '保留' if tag in typed else '合并' if target else '删除',
+                          'rule': rule, 'reason': reason, 'video_count': source_counts[tag]})
+    warnings = []
+    for tag, target in candidates.items():
+        if tag in product_issues and target == tag:
+            warnings.append(f'商品“{tag}”：{product_issues[tag]}；已保留原标签')
+    for position, tags in enumerate(video_tags, 1):
+        raw = set(tags)
+        for group in ({'口播', '无口播', '纯音乐'}, {'无人出镜', '人脸出镜', '肢体出镜'}):
+            if len(raw & group) > 1:
+                warnings.append(f"作品{position}同时记录{'、'.join(sorted(raw & group))}，保留原值并请结合实际片段核验")
+    return {'text': source_text, 'typed': typed, 'removed': removed, 'added': added, 'decisions': decisions,
+            'counts': source_counts, 'warnings': warnings, 'rule_version': SUMMARY_RULE_VERSION}
+

@@ -1,0 +1,83 @@
+name: video-analysis
+
+x-app: &app
+  build:
+    context: ..
+    dockerfile: deployment/Dockerfile
+  env_file:
+    - path: ../.env
+      required: false
+  environment:
+    VA_DATABASE_URL: postgresql+asyncpg://video:video@postgres:5432/video_analysis
+    # 与调度中心使用同一个 Redis；和调度中心一起部署时改为它的地址。
+    VA_REDIS_URL: redis://redis:6379/0
+  volumes:
+    # 下载的视频、抽帧图片和音频段，Worker 与 API 共享。
+    - work:/data/work
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: video
+      POSTGRES_PASSWORD: video
+      POSTGRES_DB: video_analysis
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U video -d video_analysis"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:8
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  migrate:
+    <<: *app
+    command: alembic upgrade head
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *app
+    command: video-analysis-api
+    # 调度中心经局域网访问；全部接口要求服务凭据（VA_SERVICE_TOKEN）。
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  consumer:
+    <<: *app
+    command: dramatiq video_analysis.entrypoints.consumer:broker --processes 1 --threads 4
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker:
+    <<: *app
+    command: video-analysis-worker
+    # 停止时等已发出的 AI 请求完成，不少于模型超时时间。
+    stop_grace_period: 3m
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres:
+  redis:
+  work:

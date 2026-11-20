@@ -1,0 +1,192 @@
+"""从已校验的字段生成可展示的单一肤色与去重tag，不额外调用模型。"""
+from collections import Counter
+import unicodedata
+from .label_attributes import SKIN_APPEARANCE_ALIASES, PRESENTATION_ALIASES
+import json
+from pathlib import Path
+import re
+from .person_appearance import APPEARANCE_TAGS, appearance_tags
+from .pregnancy_test_labels import TEST_TAGS, pregnancy_test_tags
+from .family_content import family_content_supported
+from .catalog_policy import canonical_content_category
+from .product_labels import normalize_product_label
+
+EXCLUDED_BUSINESS_TAGS = set(json.loads((Path(__file__).parent / 'config' / 'tag_policy.json').read_text(encoding='utf-8'))['excluded_labels'])
+
+
+EMPTY_VALUES = {'', '其他', '无法判断', '无法确定', '无可见头发', '无法判断肤色', '未知', '不适用',
+                '未发现', '未识别到', '无可用语音转写', '无可验证的口述转写'}
+STYLE_TAGS = {'休闲': '休闲风', '运动': '运动风', '商务': '商务风', '正式': '正式风',
+              '居家': '居家风', '街头': '街头风', '复古': '复古风', '礼服': '礼服',
+              '泳装': '泳装', '传统服饰': '传统服饰', '制服': '制服', '户外': '户外风'}
+# 声音详情仍保存用于核对；按用户要求，这些声音状态不进入汇总标签。
+EXCLUDED_AUDIO_TAGS = {'音乐', '背景音乐', '歌唱', '歌词', '疑似变声', '疑似AI配音', '疑似真人配音',
+                       '真人与疑似AI混合', 'AI配音', '真人配音', '真人与AI混合'}
+DURATION_TAGS = {'15秒内', '30秒内', '1分钟内', '3分钟内', '5分钟内', '10分钟内', '超过10分钟'}
+PREGNANCY_TAGS = {'怀孕（自述）', '孕早期', '孕中期', '孕晚期', '孕期带货'}
+
+
+def select_skin_tone(frames, people, has_person):
+    """每帧主要展示人物投一票；并列或全未知时不随意挑肤色。"""
+    from .label_attributes import SKIN_TONES, SKIN_UNKNOWN
+    evidence = []
+    for frame in frames:
+        index = frame['frame_index']
+        details = [p for p in people if p['frame_index'] == index]
+        primary = [p for p in details if p.get('primary_subject')]
+        if len(primary) == 1:
+            sources = primary
+        elif len(details) == 1:
+            sources = details
+        elif not details and len(frame['skin_tones']) == 1:
+            sources = [frame]  # 历史/简化响应可回退到单一帧肤色，不能猜多人主角。
+        else:
+            sources = []
+        for item in sources:
+            tones = [v for v in item.get('skin_tones', []) if v in SKIN_TONES and v != SKIN_UNKNOWN]
+            if len(tones) == 1 and item.get('skin_evidence', '').strip():
+                evidence.append({'frame_index': index, 'person_index': item.get('person_index'),
+                                 'value': tones[0], 'evidence': item['skin_evidence']})
+    counts = Counter(item['value'] for item in evidence)
+    winners = [v for v, n in counts.items() if n == max(counts.values())] if counts else []
+    value = winners[0] if len(winners) == 1 else SKIN_UNKNOWN if has_person is not False else None
+    return {'value': value, 'values': [value] if value else [],
+            'status': 'observed' if value and value != SKIN_UNKNOWN else 'unknown' if value else 'not_applicable',
+            'selection': 'primary_subject_frame_vote', 'candidate_counts': dict(counts), 'evidence': evidence,
+            'basis': '仅显示一个代表性可见肤色：主要展示人物的明确帧结果多数票；并列或证据不足时无法判断肤色。描述画面所见，不还原真实肤色、不表示种族或族裔'}
+
+
+def build_tags(labels):
+    """仅投影有效字段；保留映射来源，跨维度重复名称只显示一次。"""
+    tags, sources, canonical = [], {}, {}
+
+    def add(value, source, voice_estimate=False):
+        excluded = EMPTY_VALUES if voice_estimate else EMPTY_VALUES | EXCLUDED_AUDIO_TAGS
+        if not isinstance(value, str) or value.strip() in excluded | DURATION_TAGS:
+            return
+        value = value.strip()
+        value = PRESENTATION_ALIASES.get(value, value)
+        if value == '口述':
+            if source != 'audio_content.speech_present' or labels.get('audio_content', {}).get('speech_present') is not True:
+                return
+            value = '口播'  # 历史明确讲话只归入口播，不再产生第四种音频tag。
+        if value in {'男性', '女性', '中性'} and source != 'attributes.appearance_presentation':
+            return
+        # 肯定装扮名称必须有属性支持；分类/产品不能凭同名词绕过布尔判断。
+        for key, old, current in [('makeup', '化妆', '有化妆'), ('manicure', '美甲', '有美甲')]:
+            positive = labels.get('attributes', {}).get(key, {}).get('value') is True
+            if value == old and positive:
+                value = current
+            if value == current and not positive:
+                return
+        if source in {'categories.label', 'attributes.video_type'}:
+            value = canonical_content_category(value)
+            if value is None:
+                return
+        if value in EXCLUDED_BUSINESS_TAGS:
+            return
+        if 'audio_label' in labels and value in {'口播', '无口播', '纯音乐', '口述'} and source != 'audio_label':
+            return
+        # 出镜及人数只能来自专用画面字段，不能由分类/商品名称伪造。
+        if (value in APPEARANCE_TAGS or re.fullmatch(r'\d+人出镜', value)) and source not in {
+                'has_person', 'person_appearance.type', 'person_appearance.face_count.max_in_sampled_frame',
+                'person_appearance.person_count.max_in_sampled_frame',
+                'person_appearance.person_count.per_frame.multiple_people'}:
+            return
+        if value in PREGNANCY_TAGS and source not in {'attributes.pregnancy', 'attributes.pregnancy_stage', 'attributes.pregnancy_commerce'}:
+            return
+        if value in TEST_TAGS and source != 'attributes.pregnancy_test':
+            return
+        if value == '家庭' and source != 'attributes.family_content':
+            return
+        key = unicodedata.normalize('NFC', value).casefold()
+        value = canonical.setdefault(key, value)
+        if value not in sources:
+            tags.append(value)
+            sources[value] = []
+        if source not in sources[value]:
+            sources[value].append(source)
+
+    def values(field, source, transform=lambda v: v):
+        if not isinstance(field, dict) or field.get('status') in {'unknown', 'not_applicable', 'failed', 'no_transcript'}:
+            return
+        for value in field.get('values', []):
+            if isinstance(value, str) and value not in EMPTY_VALUES:
+                add(transform(value), source)
+
+    if labels.get('status') not in {'succeeded', 'partial'}:
+        return [], []
+    for tag, source in appearance_tags(labels):
+        add(tag, source)
+    if labels.get('has_animal') is True:
+        add('动物出镜', 'has_animal')
+    gender = labels.get('gender', {})
+    if gender.get('status') == 'self_reported':
+        values(gender, 'gender', lambda v: v + '（自述）')
+    values(labels.get('skin_tone'), 'skin_tone')
+    language = labels.get('language', {})
+    for key in ('spoken', 'on_screen_text'):
+        for item in language.get(key, []):
+            if item.get('code') != 'und':
+                add(item.get('label'), 'language.' + key)
+    attributes = labels.get('attributes', {})
+    if family_content_supported(attributes.get('family_content', {})):
+        add('家庭', 'attributes.family_content')
+    audio_label = labels.get('audio_label', {})
+    if audio_label.get('status') in {'signal_supported', 'transcript_supported', 'historical_audio_supported', 'listening_supported'}:
+        add(audio_label.get('label'), 'audio_label')
+    values(attributes.get('appearance_presentation'), 'attributes.appearance_presentation')
+    values(attributes.get('age'), 'attributes.age')
+    values(attributes.get('child_youth_age'), 'attributes.child_youth_age')
+    values(attributes.get('body_type'), 'attributes.body_type', lambda v: v + '体型')
+    for key in ('length', 'texture'):
+        values(attributes.get('hair', {}).get(key), 'attributes.hair.' + key)
+    values(attributes.get('clothing_style'), 'attributes.clothing_style', lambda v: STYLE_TAGS.get(v))
+    values(attributes.get('skin_condition'), 'attributes.skin_condition', lambda v: SKIN_APPEARANCE_ALIASES.get(v, v))
+    for key in ('scenes', 'video_type', 'cup'):
+        values(attributes.get(key), 'attributes.' + key)
+    for key, tag in [('makeup', '有化妆'), ('manicure', '有美甲'), ('filter', '滤镜'), ('fitness', '健身')]:
+        if attributes.get(key, {}).get('value') is True:
+            add(tag, 'attributes.' + key)
+    for key, tag, unit in [('children', '小孩', '个小孩'), ('pets', '宠物', '只宠物')]:
+        field = attributes.get(key, {})
+        if field.get('present') is True:
+            add(tag, 'attributes.' + key + '.present')
+            count = field.get('count', {}).get('max_in_sampled_frame')
+            if type(count) is int and count > 0:
+                add(f'{count}{unit}', 'attributes.' + key + '.count.max_in_sampled_frame')
+            if key == 'children':
+                values(field.get('age'), 'attributes.children.age')
+            else:
+                for pet in field.get('observations', []):
+                    add(pet.get('kind'), 'attributes.pets.observations.kind')
+                    add(pet.get('breed'), 'attributes.pets.observations.breed')
+    # 时长字段与时长tag暂时停用；其他业务tag继续生成。
+    # add(attributes.get('video_duration', {}).get('range_label'), 'attributes.video_duration.range_label')
+    pregnancy = attributes.get('pregnancy', {})
+    if pregnancy.get('value') is True and pregnancy.get('status') == 'self_reported':
+        add('怀孕（自述）', 'attributes.pregnancy')
+    # 阶段可来自明确孕周字幕/口述主题，不要求出镜人物已自述怀孕。
+    if attributes.get('pregnancy_stage', {}).get('status') in {'self_reported', 'content_reported'}:
+        values(attributes.get('pregnancy_stage'), 'attributes.pregnancy_stage')
+    if attributes.get('pregnancy_commerce', {}).get('value') is True:
+        add('孕期带货', 'attributes.pregnancy_commerce')
+    for tag in pregnancy_test_tags(attributes.get('pregnancy_test', {})):
+        add(tag, 'attributes.pregnancy_test')
+    for product in attributes.get('products', []):
+        add(normalize_product_label(product).get('label'), 'attributes.products.name')
+    for category in labels.get('categories', []):
+        add(category.get('label'), 'categories.label')
+    audio = labels.get('audio_content', {})
+    if audio.get('speech_present') is True:
+        add('口述', 'audio_content.speech_present')
+    # 仅兼容历史保存结果的标签投影；新分析已停用配音判断，不产生此字段。
+    voice = audio.get('voice_tendency', {})
+    if (voice.get('status') == 'succeeded' and voice.get('method') == 'general_model_estimate'
+            and voice.get('scope') == 'sampled_audio' and voice.get('sample_ranges')
+            and audio.get('speech_present') is True):
+        legacy_voice_labels = {'suspected_ai':'AI配音', 'suspected_human':'真人配音', 'mixed':'真人与AI混合'}
+        if voice.get('value') in {'suspected_ai', 'suspected_human', 'mixed'}:
+            add(legacy_voice_labels[voice['value']], 'audio_content.voice_tendency', voice_estimate=True)
+    # speaker_identity 当前只可能未知/不适用；不能把出镜口述投影为“达人本人声音”。
+    return tags, [{'tag': tag, 'source_fields': sources[tag]} for tag in tags]

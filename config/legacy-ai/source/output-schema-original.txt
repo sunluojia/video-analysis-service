@@ -1,0 +1,9 @@
+基础结构如下（people_count和animal_present允许null），后述扩展字段也必须输出：
+{"observations":[{"frame_index":0,"face_present":false,"face_count":0,"body_visible":false,"visible_person_count":0,"visible_person_count_evidence":"","multiple_people":null,"multiple_people_evidence":"","people_count":0,"animal_present":false,"skin_tones":[],"skin_evidence":"","evidence":"画面无人依据"}],
+"languages":[{"code":"en","source":"visual_text","frame_indices":[0],"transcript_quote":"","evidence":"图片英文文字"}],
+"matched_tags":[],
+"additional_tags":[],
+"fallback_tag":null,
+"remarks":[{"text":"观察备注","frame_indices":[0],"transcript_quote":""}]}
+无语言/匹配/备注时用空数组；不需要fallback时用null；observations必须覆盖每一张附图。
+matched_tags每项结构为label、frame_indices、transcript_quote_id、evidence，label必须是有证据的简短中文类别名，不能填写内部编号；不输出catalog_id字段。

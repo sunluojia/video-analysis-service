@@ -1,0 +1,136 @@
+"""Present model output without rejecting or rewriting its content."""
+import copy
+import json
+
+
+def response_content(text):
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError('模型没有返回内容')
+    candidate = text.strip()
+    if candidate.startswith('```'):
+        lines = candidate.splitlines()
+        if len(lines) >= 3 and lines[-1].strip() == '```':
+            candidate = '\n'.join(lines[1:-1])
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError:
+        return text
+
+
+def read_labels(response, catalog):
+    from .tagging import LANGUAGES
+    from .product_sizes import qualify_size_tags
+
+    raw = response_content(response['response'])
+    names = {item['id']: item['label'] for item in catalog['entries']}
+    tags = []
+
+    def add(value):
+        if isinstance(value, str) and value and value not in tags:
+            tags.append(value)
+
+    # These are display fields, not evidence or content acceptance rules.
+    text_fields = {'label', 'value', 'name', 'age_group', 'child_age_group',
+                   'body_type', 'hair_length', 'hair_texture', 'breed'}
+    list_fields = {'tags', 'skin_tones', 'clothing_styles', 'skin_appearance', 'values'}
+    omitted = {'remarks', 'description', 'evidence', 'cues', 'transcript_quote',
+               'transcript_quote_id', 'frame_indices', 'published_topic_translations'}
+    boolean_labels = {'filter': '滤镜', 'fitness': '健身', 'makeup': '有化妆', 'manicure': '有美甲'}
+
+    def visit(value, field=''):
+        if isinstance(value, list):
+            for item in value:
+                if field in list_fields or not field:
+                    add(item)
+                visit(item, field)
+        elif isinstance(value, dict):
+            for key, item in value.items():
+                if key in omitted or key.endswith('_evidence'):
+                    continue
+                if key == 'catalog_id':
+                    add(names.get(item, item) if isinstance(item, str) else item)
+                elif key == 'code' and field == 'languages':
+                    add(LANGUAGES.get(item, item) if isinstance(item, str) else item)
+                elif key == 'kind' and field == 'pets':
+                    add(item)
+                elif key in text_fields:
+                    add(item)
+                elif key in boolean_labels and item is True:
+                    add(boolean_labels[key])
+                if key == 'value' and item is True and field in boolean_labels:
+                    add(boolean_labels[field])
+                visit(item, key)
+
+    visit(raw)
+    fields = raw if isinstance(raw, dict) else {}
+    frames = fields.get('observations', [])
+    frames = [frame for frame in frames if isinstance(frame, dict)] if isinstance(frames, list) else []
+    for frame in frames:
+        if frame.get('face_present') is True:
+            add('人脸出镜')
+        elif frame.get('body_visible') is True:
+            add('仅肢体出镜')
+        elif frame.get('face_present') is False and frame.get('body_visible') is False:
+            add('无人出镜')
+        count = frame.get('visible_person_count')
+        if type(count) is int and count > 0:
+            add(f'{count}人出镜')
+        if frame.get('multiple_people') is True:
+            add('多人出镜')
+        if frame.get('animal_present') is True:
+            add('动物出镜')
+    attributes = fields.get('attributes')
+    products = attributes.get('products', []) if isinstance(attributes, dict) else []
+    tags = qualify_size_tags(tags, products if isinstance(products, list) else [])
+    labels = copy.deepcopy(fields)
+    remarks = fields.get('remarks', [])
+    labels['remarks'] = remarks if isinstance(remarks, list) else [remarks] if remarks else []
+    warnings = fields.get('warnings', [])
+    labels['warnings'] = warnings if isinstance(warnings, list) else [warnings] if warnings else []
+    labels.update(status='succeeded', tags=tags, model_output=copy.deepcopy(raw),
+                  raw_response=response['response'], frame_observations=copy.deepcopy(frames),
+                  processing={'content_handling': 'model_output'},
+                  model_request={key: response[key] for key in
+                      ('model', 'request_id', 'usage', 'finish_reason', 'elapsed_seconds', 'first_token_seconds', 'attempts')})
+    observations = [{'response': frame['description'], 'frame_index': frame.get('frame_index')}
+                    for frame in frames if 'description' in frame]
+    return labels, observations
+
+
+def combine_labels(visual, enriched):
+    from .product_sizes import qualify_size_tags
+    result = copy.deepcopy(enriched)
+    if enriched.get('processing', {}).get('speech_delta'):
+        result = copy.deepcopy(visual)
+        result['model_request'] = copy.deepcopy(enriched['model_request'])
+        result['processing'] = copy.deepcopy(enriched['processing'])
+        def merge(first, second):
+            if isinstance(first, dict) and isinstance(second, dict):
+                return {key: merge(first[key], value) if key in first else copy.deepcopy(value)
+                        for key, value in (first | second).items()}
+            if isinstance(first, list) and isinstance(second, list):
+                return copy.deepcopy(first + [item for item in second if item not in first])
+            return copy.deepcopy(second)
+        original = visual.get('model_output', {})
+        additions = enriched.get('model_output', {})
+        if isinstance(original, dict) and isinstance(additions, dict):
+            combined = merge(original, {key: value for key, value in additions.items() if key != 'observations'})
+            result = {**copy.deepcopy(visual), **copy.deepcopy(combined),
+                      'model_output': combined, 'model_request': enriched['model_request'],
+                      'processing': copy.deepcopy(enriched['processing'])}
+            result['frame_observations'] = copy.deepcopy(visual.get('frame_observations', original.get('observations', [])))
+    products = []
+    for labels in (visual, enriched):
+        attributes = labels.get('attributes')
+        items = attributes.get('products') if isinstance(attributes, dict) else None
+        if isinstance(items, list):
+            products.extend(items)
+    result['tags'] = qualify_size_tags(visual['tags'] + enriched['tags'], products)
+    result['model_outputs'] = [copy.deepcopy(visual['model_output']), copy.deepcopy(enriched['model_output'])]
+    result['raw_responses'] = [visual['raw_response'], enriched['raw_response']]
+    result['remarks'] = copy.deepcopy(visual.get('remarks', []))
+    for remark in enriched.get('remarks', []):
+        if remark not in result['remarks']:
+            result['remarks'].append(copy.deepcopy(remark))
+    result['vision_requests'] = [visual['model_request'], enriched['model_request']]
+    return result

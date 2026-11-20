@@ -1,0 +1,77 @@
+"""词典与自定义内容类别共用业务清理规则；人物属性、尺码和产品标签独立处理。"""
+import json
+import unicodedata
+from functools import lru_cache
+from pathlib import Path
+
+POLICY_PATH = Path(__file__).parent / 'config' / 'tag_policy.json'
+
+
+@lru_cache(maxsize=1)
+def load_policy():
+    return json.loads(POLICY_PATH.read_text(encoding='utf-8'))
+
+
+def category_removal_reasons(label, policy=None):
+    policy = policy or load_policy()
+    rules = policy.get('category_rules', {})
+    reasons = []
+    for word in rules.get('contains_any', []):
+        if word in label:
+            reasons.append(f'包含指定字样：{word}')
+    for word, allowed in rules.get('contains_exceptions', {}).items():
+        if word in label and label not in allowed:
+            reasons.append(f'包含{word}的复合描述；仅保留' + '、'.join(allowed))
+    if rules.get('no_english') and any('LATIN' in unicodedata.name(char, '') for char in label):
+        reasons.append('包含英文字母')
+    if rules.get('no_whitespace') and any(char.isspace() for char in label):
+        reasons.append('包含空格或其他空白')
+    if rules.get('no_symbols') and any(unicodedata.category(char)[0] in 'PS' for char in label):
+        reasons.append('包含标点或符号')
+    if label in policy.get('excluded_labels', []):
+        reasons.append(policy.get('excluded_label_reasons', {}).get(label, '此前已按业务要求停用'))
+    return list(dict.fromkeys(reasons))
+
+
+def canonical_content_category(label, policy=None):
+    policy = policy or load_policy()
+    # 删除规则优先于近义映射：分享口播、英文、符号等不能通过改名重新进入标签。
+    if not isinstance(label, str) or category_removal_reasons(label, policy):
+        return None
+    # 用户明确改名与近义合并分开记录，重新导入时也保留已确认的规范名称。
+    label = policy.get('label_renames', {}).get(label, label)
+    if category_removal_reasons(label, policy):
+        return None
+    return policy.get('semantic_aliases', {}).get(label, label)
+
+
+def clean_catalog(catalog, policy=None):
+    """物理移除词条，保留原编号/来源；返回逐项审计，重新导入Excel也使用同一规则。"""
+    policy = policy or load_policy()
+    aliases = policy.get('semantic_aliases', {})
+    renames = policy.get('label_renames', {})
+    entries = [{**entry, 'label': renames.get(entry['label'], entry['label'])}
+               for entry in catalog['entries']]
+    labels = {entry['label'] for entry in entries if not category_removal_reasons(entry['label'], policy)}
+    removed, kept = [], []
+    for entry in entries:
+        label = entry['label']
+        reasons = category_removal_reasons(label, policy)
+        replacement = aliases.get(label)
+        if reasons:
+            removed.append({**entry, 'removal_kind': '业务规则', 'reasons': reasons, 'retained_label': None})
+        elif replacement and replacement != label:
+            if replacement not in labels or replacement in aliases:
+                raise ValueError(f'近义保留项不存在或不是最终名称：{label} -> {replacement}')
+            removed.append({**entry, 'removal_kind': '近义合并',
+                            'reasons': [policy.get('semantic_alias_reasons', {}).get(label, '同义或重复类别表达')],
+                            'retained_label': replacement})
+        else:
+            kept.append(entry.copy())
+    result = {**catalog, 'entries': kept, 'unique_labels': len(kept),
+              'eligible_labels': sum(entry['eligible'] for entry in kept),
+              'source_rows': sum(len(entry['cells']) for entry in kept),
+              'source_original_rows': catalog.get('source_original_rows', catalog['source_rows']),
+              'source_original_unique_labels': catalog.get('source_original_unique_labels', len(entries)),
+              'cleanup_policy_version': policy['version']}
+    return result, removed
