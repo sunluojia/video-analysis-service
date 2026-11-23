@@ -11,9 +11,9 @@ from openai import RateLimitError
 
 from video_analysis.integrations.llm import langchain_client
 from video_analysis.integrations.llm.langchain_client import LangChainAi
-from video_analysis.modules.ai.call.models import BAILIAN_EXPLICIT_CACHE, AiProfile
+from video_analysis.modules.ai.call.models import BAILIAN_EXPLICIT_CACHE, AiProfile, Usage
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition
-from video_analysis.modules.scheduling.execution.ports import Rejected, VideoMaterial
+from video_analysis.modules.scheduling.execution.ports import Answer, Rejected, VideoMaterial
 
 
 def listen_profile(base_url: str) -> AiProfile:
@@ -47,7 +47,7 @@ async def test_summary_receives_product_evidence_and_separate_published_topics(m
             "topic_translations": [{"topic": "#hoodie", "translation": "卫衣"}],
         }
     )
-    ask = AsyncMock(return_value=CreatorTags(tags=["卫衣", "卫衣XL码"]))
+    ask = AsyncMock(return_value=Answer(CreatorTags(tags=["卫衣", "卫衣XL码"])))
     client = LangChainAi()
     monkeypatch.setattr(client, "_ask", ask)
 
@@ -68,10 +68,10 @@ async def test_recognition_keeps_only_appearance_observations_with_a_frame(tmp_p
     ]
     response = Recognition(tags=[], summary="", appearances=observations)
     client = LangChainAi()
-    monkeypatch.setattr(client, "_ask", AsyncMock(return_value=response))
+    monkeypatch.setattr(client, "_ask", AsyncMock(return_value=Answer(response)))
     material = VideoMaterial([frame], Listening(sounds=[]), "", [])
 
-    result = await client.recognize(sentinel.profile, material)
+    result = (await client.recognize(sentinel.profile, material)).value
 
     assert len(result.appearances) == 1
     assert result.appearance_tags() == ["白肤色"]
@@ -79,12 +79,12 @@ async def test_recognition_keeps_only_appearance_observations_with_a_frame(tmp_p
 
 async def test_summary_retains_distinct_appearances_from_old_and_new_results(monkeypatch):
     client = LangChainAi()
-    response = CreatorTags(tags=["生活记录", "白肤色", "白肤色", "55岁+", "视频时长99秒"])
-    monkeypatch.setattr(client, "_ask", AsyncMock(return_value=response))
+    response = CreatorTags(tags=["生活记录", "白肤色", "白肤色", "55岁+"])
+    monkeypatch.setattr(client, "_ask", AsyncMock(return_value=Answer(response)))
     old = Recognition(tags=["白肤色", "偏白肤色"], summary="")
     new = Recognition.model_validate(
         {
-            "tags": ["白肤色", "视频时长12.5秒"],
+            "tags": ["白肤色"],
             "summary": "",
             "appearances": [
                 {"frame_index": 0, "age_group": "25-34岁", "evidence": "清楚的正脸"},
@@ -92,10 +92,10 @@ async def test_summary_retains_distinct_appearances_from_old_and_new_results(mon
         }
     )
 
-    later = Recognition(tags=["视频时长31秒"], summary="")
-    summary = await client.summarize(sentinel.profile, [old, new, later])
+    later = Recognition(tags=[], summary="")
+    summary = (await client.summarize(sentinel.profile, [old, new, later])).value
 
-    assert summary.tags == ["生活记录", "白肤色", "偏白肤色", "25-34岁", "视频时长12.5–31秒"]
+    assert summary.tags == ["生活记录", "白肤色", "偏白肤色", "25-34岁"]
 
 
 @pytest.mark.parametrize(
@@ -160,19 +160,21 @@ async def test_listen_sends_the_audio_format_expected_by_each_endpoint(
             max_retries=0,
         )
         monkeypatch.setattr(client, "_model", lambda _: model)
-        result = await client.listen(profile, audio)
+        result = (await client.listen(profile, audio)).value
 
     assert result.transcript == "你好"
 
 
-@pytest.mark.parametrize("explicit_cache", [False, True], ids=["implicit", "explicit"])
+@pytest.mark.parametrize("explicit_cache", [False, True], ids=["switched-off", "default"])
 async def test_bailian_uses_a_stable_prefix_and_reports_stream_usage(
     tmp_path, monkeypatch, caplog, explicit_cache
 ):
     profile = replace(
         listen_profile("https://dashscope.aliyuncs.com/compatible-mode/v1"),
         model="qwen3.8-flash",
-        params={BAILIAN_EXPLICIT_CACHE: explicit_cache, "streaming": True},
+        params={"streaming": True}
+        if explicit_cache
+        else {BAILIAN_EXPLICIT_CACHE: False, "streaming": True},
         prompt="固定的识别规则和标签词典",
         prompt_version=3,
     )
@@ -225,12 +227,15 @@ async def test_bailian_uses_a_stable_prefix_and_reports_stream_usage(
             )
 
         monkeypatch.setattr(langchain_client, "init_chat_model", init_model)
+        answers = []
         for index in range(2):
             frame = tmp_path / f"{index}.jpg"
             frame.write_bytes(f"frame {index}".encode())
             video = VideoMaterial([frame], Listening(sounds=[]), f"视频 {index}", [])
-            assert (await client.recognize(profile, video)).summary == "识别完成"
+            answers.append(await client.recognize(profile, video))
 
+    assert [answer.value.summary for answer in answers] == ["识别完成"] * 2
+    assert [answer.usage for answer in answers] == [Usage(3200, 20, 0), Usage(3200, 20, 2048)]
     first, second = calls
     expected_content = (
         [{"type": "text", "text": profile.prompt, "cache_control": {"type": "ephemeral"}}]

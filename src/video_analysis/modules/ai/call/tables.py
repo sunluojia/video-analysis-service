@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Index, String, Table, Text, Uuid, text
+from sqlalchemy import Column, Index, Integer, String, Table, Text, Uuid, text
 
 from video_analysis.core.database.mapping import enum_column, metadata, reference, timestamp
 from video_analysis.modules.ai.call.models import CallOutcome
@@ -20,6 +20,10 @@ ai_calls = Table(
     Column("finished_at", timestamp()),
     Column("outcome", enum_column(CallOutcome)),
     Column("error", Text),
+    # 成功的调用记下服务商报告的用量，页面据此算缓存命中率；没报告的为空。
+    Column("input_tokens", Integer),
+    Column("output_tokens", Integer),
+    Column("cached_tokens", Integer),
     Index("ix_ai_calls_open", "model_id", postgresql_where=text("finished_at IS NULL")),
     Index("ix_ai_calls_recent", "model_id", "started_at"),
 )

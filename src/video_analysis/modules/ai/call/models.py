@@ -4,6 +4,25 @@ from enum import StrEnum
 from uuid import UUID
 
 BAILIAN_EXPLICIT_CACHE = "bailian_explicit_cache"
+"""模型参数里的显式缓存开关：支持的模型默认开启，设为 false 关闭。"""
+EXPLICIT_CACHE_MODELS = frozenset(
+    {
+        "qwen4-max",
+        "qwen3.8-max",
+        "qwen3.7-max",
+        "qwen3.7-plus",
+        "qwen3.6-plus",
+        "qwen3.5-plus",
+        "qwen-plus",
+        "qwen3.8-flash",
+        "qwen3.7-flash",
+        "qwen3.6-flash",
+        "qwen3.5-flash",
+        "qwen-flash",
+        "qwen3-vl-plus",
+    }
+)
+"""百炼（华北2）支持显式缓存的千问模型，见百炼文档「上下文缓存」。"""
 
 
 class CallOutcome(StrEnum):
@@ -12,6 +31,15 @@ class CallOutcome(StrEnum):
     TIMED_OUT = "timed_out"
     LOST = "lost"
     """Worker 在等待响应时中断，无法确认模型是否已处理。"""
+
+
+@dataclass(frozen=True)
+class Usage:
+    """一次调用的 token 用量；服务商没有报告命中缓存的数量时 cached_tokens 为 None。"""
+
+    input_tokens: int
+    output_tokens: int
+    cached_tokens: int | None
 
 
 @dataclass(frozen=True)

@@ -91,7 +91,7 @@ async def test_video_result_is_reported_with_every_stage(database, setup):
     accepted, completed = await events(database, type="job")
     assert accepted["status"] == "accepted"
     assert completed["result"]["listening"]["transcript"] == "第000段\n第001段"
-    assert completed["result"]["recognition"]["tags"] == ["美妆", "口播", "视频时长30秒"]
+    assert completed["result"]["recognition"]["tags"] == ["美妆", "口播"]
     # 下载的视频在识别后删除，抽帧图片保留到保留期结束。
     job = await load_job(database)
     assert completed["artifacts_until"] is not None

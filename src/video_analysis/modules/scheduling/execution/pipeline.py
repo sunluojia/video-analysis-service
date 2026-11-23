@@ -6,6 +6,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 from uuid import UUID
 
@@ -14,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_analysis.core.common.clock import utcnow
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
-from video_analysis.modules.ai.call.models import AiProfile, CallOutcome
+from video_analysis.modules.ai.call.models import AiProfile, CallOutcome, Usage
 from video_analysis.modules.ai.call.repository import CallRepository
 from video_analysis.modules.ai.call.service import CallService
 from video_analysis.modules.analysis.job.models import Job, JobKind, JobStatus, MediaInfo
@@ -66,14 +67,14 @@ class Pipeline:
         """执行一项已领取的任务。AI 任务使用领取时确定的配置，执行期间不再读取路由。"""
         try:
             if profile is None:
-                output = await self._process_media(claimed)
+                output, usage = await self._process_media(claimed), None
             else:
-                output = await self._ask_ai(claimed, profile)
+                output, usage = await self._ask_ai(claimed, profile)
         except Exception as error:
             log.warning("任务 %s %s 失败：%s", claimed.kind, claimed.id, describe(error))
             await self._failed(claimed, error, profile)
         else:
-            await self._succeeded(claimed, output, profile)
+            await self._succeeded(claimed, output, profile, usage)
 
     async def recover_expired(self) -> None:
         """回收租约到期的任务：媒体作业重新排队，AI 请求转人工核查。"""
@@ -113,22 +114,27 @@ class Pipeline:
         await self._materials.download(job.video.material, source)
         return await self._media.probe(source)
 
-    async def _ask_ai(self, task: Task, profile: AiProfile):
+    async def _ask_ai(self, task: Task, profile: AiProfile) -> tuple[Any, Usage | None]:
+        """返回阶段的输出和这次调用的 token 用量。"""
         job = await self._job(task.job_id)
         async with asyncio.timeout(profile.timeout_seconds):
             if task.kind == TaskKind.SUMMARIZE:
                 videos = [video.recognition for video in job.summary.videos]
-                return await self._ai.summarize(profile, videos)
+                answer = await self._ai.summarize(profile, videos)
+                return answer.value, answer.usage
 
             if task.kind == TaskKind.LISTEN:
                 assert task.segment is not None, "听音任务对应一个音频段"
-                return await self._ai.listen(profile, self._workspace.segment(job.id, task.segment))
+                segment = self._workspace.segment(job.id, task.segment)
+                answer = await self._ai.listen(profile, segment)
+                return answer.value, answer.usage
 
             video, listening = job.video, await self._listening(job.id)
             material = VideoMaterial(
                 self._workspace.frames(job.id), listening, video.description, video.topics
             )
-            return listening, await self._ai.recognize(profile, material)
+            answer = await self._ai.recognize(profile, material)
+            return (listening, answer.value), answer.usage
 
     async def _job(self, job_id: UUID) -> Job:
         async with self._database.transaction() as session:
@@ -138,11 +144,15 @@ class Pipeline:
         async with self._database.transaction() as session:
             return merge_listening(await TaskRepository(session).listen_results(job_id))
 
-    async def _succeeded(self, claimed: Task, output, profile: AiProfile | None) -> None:
+    async def _succeeded(
+        self, claimed: Task, output, profile: AiProfile | None, usage: Usage | None
+    ) -> None:
         async with self._database.transaction() as session:
             now = utcnow()
             if claimed.kind.uses_ai:
-                await CallRepository(session).finish(claimed, CallOutcome.SUCCEEDED, now)
+                await CallRepository(session).finish(
+                    claimed, CallOutcome.SUCCEEDED, now, usage=usage
+                )
             task = await self._current(session, claimed)
             if task is None:
                 return
@@ -221,12 +231,7 @@ class Pipeline:
                 job.complete(
                     {
                         "listening": listening.model_dump(mode="json"),
-                        "recognition": {
-                            **result,
-                            "tags": recognition.display_tags(
-                                listening, duration_seconds=job.duration
-                            ),
-                        },
+                        "recognition": {**result, "tags": recognition.display_tags(listening)},
                     },
                     now,
                 )

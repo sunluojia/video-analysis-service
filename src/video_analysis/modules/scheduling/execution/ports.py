@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
-from video_analysis.modules.ai.call.models import AiProfile
+from video_analysis.modules.ai.call.models import AiProfile, Usage
 from video_analysis.modules.analysis.job.models import Material, MediaInfo
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition
 
@@ -44,9 +44,21 @@ class Rejected(Exception):
     """模型接口拒绝了请求本身，如内容审核不通过、音频为空、参数无效；原样重发结果相同，不再重试。"""
 
 
+@dataclass(frozen=True)
+class Answer[T]:
+    """模型的回答和这次调用的 token 用量；服务商没有报告用量时为 None。"""
+
+    value: T
+    usage: Usage | None = None
+
+
 class VideoAi(Protocol):
     """请求被拒绝时抛出 Rejected；限流、超时和服务端错误照常抛出，可以重试。"""
 
-    async def listen(self, profile: AiProfile, audio: Path) -> Listening: ...
-    async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Recognition: ...
-    async def summarize(self, profile: AiProfile, videos: Sequence[Recognition]) -> CreatorTags: ...
+    async def listen(self, profile: AiProfile, audio: Path) -> Answer[Listening]: ...
+    async def recognize(
+        self, profile: AiProfile, material: VideoMaterial
+    ) -> Answer[Recognition]: ...
+    async def summarize(
+        self, profile: AiProfile, videos: Sequence[Recognition]
+    ) -> Answer[CreatorTags]: ...

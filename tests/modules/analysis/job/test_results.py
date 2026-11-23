@@ -186,12 +186,9 @@ def test_creator_keeps_only_appearance_values_seen_in_its_videos():
     ]
 
 
-def test_video_length_tag_comes_from_measured_duration():
+def test_duration_is_not_a_tag():
     recognition = Recognition(tags=["生活记录", "视频时长8秒", "#美食"], summary="")
 
-    assert recognition.display_tags(Listening(sounds=[]), duration_seconds=15.44) == [
-        "生活记录",
-        "视频时长15.4秒",
-        "#美食",
-    ]
     assert recognition.display_tags(Listening(sounds=[])) == ["生活记录", "#美食"]
+    summary = CreatorTags(tags=["生活记录", "视频时长8–31秒"])
+    assert summary.with_observed_tags([recognition]).tags == ["生活记录"]

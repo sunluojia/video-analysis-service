@@ -9,6 +9,7 @@ import json
 import logging
 import os
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -24,9 +25,14 @@ from langchain_core.messages.content import (
 from openai import APIStatusError
 from pydantic import BaseModel
 
-from video_analysis.modules.ai.call.models import BAILIAN_EXPLICIT_CACHE, AiProfile
+from video_analysis.modules.ai.call.models import (
+    BAILIAN_EXPLICIT_CACHE,
+    EXPLICIT_CACHE_MODELS,
+    AiProfile,
+    Usage,
+)
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition
-from video_analysis.modules.scheduling.execution.ports import Rejected, VideoMaterial
+from video_analysis.modules.scheduling.execution.ports import Answer, Rejected, VideoMaterial
 
 RETRYABLE_STATUS = frozenset({408, 409, 429})
 """与 OpenAI SDK 的重试判断一致：请求超时、冲突、限流和 5xx 重发可能成功，其余 4xx 重发结果相同。"""
@@ -37,7 +43,7 @@ class LangChainAi:
     def __init__(self) -> None:
         self._models: dict[tuple, BaseChatModel] = {}
 
-    async def listen(self, profile: AiProfile, audio: Path) -> Listening:
+    async def listen(self, profile: AiProfile, audio: Path) -> Answer[Listening]:
         encoded = _base64(await asyncio.to_thread(audio.read_bytes))
         audio_block: ContentBlock | dict[str, Any]
         if _is_bailian_openai(profile):
@@ -52,7 +58,7 @@ class LangChainAi:
             profile, Listening, create_text_block("请分析这段音频。"), audio_block
         )
 
-    async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Recognition:
+    async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Answer[Recognition]:
         frames = await asyncio.to_thread(lambda: [path.read_bytes() for path in material.frames])
         facts = {
             "发布描述": material.description,
@@ -64,17 +70,19 @@ class LangChainAi:
         images = [
             create_image_block(base64=_base64(data), mime_type="image/jpeg") for data in frames
         ]
-        result = await self._ask(profile, Recognition, create_text_block(text), *images)
-        result.appearances = [
+        answer = await self._ask(profile, Recognition, create_text_block(text), *images)
+        answer.value.appearances = [
             item
-            for item in result.appearances
+            for item in answer.value.appearances
             if item.frame_index < len(frames)
             and (item.age_group or item.skin_tone)
             and item.evidence.strip()
         ]
-        return result
+        return answer
 
-    async def summarize(self, profile: AiProfile, videos: Sequence[Recognition]) -> CreatorTags:
+    async def summarize(
+        self, profile: AiProfile, videos: Sequence[Recognition]
+    ) -> Answer[CreatorTags]:
         results = []
         for video in videos:
             row = video.model_dump(mode="json")
@@ -82,20 +90,20 @@ class LangChainAi:
             topic_tags = set(video.published_topic_tags())
             row["tags"] = [tag for tag in video.tags if tag not in topic_tags]
             results.append(row)
-        result = await self._ask(profile, CreatorTags, create_text_block(_json(results)))
-        return result.with_observed_tags(videos)
+        answer = await self._ask(profile, CreatorTags, create_text_block(_json(results)))
+        return replace(answer, value=answer.value.with_observed_tags(videos))
 
     async def _ask[T: BaseModel](
         self, profile: AiProfile, schema: type[T], *blocks: ContentBlock | dict[str, Any]
-    ) -> T:
+    ) -> Answer[T]:
         # Pydantic 定义字段结构，系统提示词定义业务判断；所选模型需支持工具调用。
         model = self._model(profile).with_structured_output(
             schema, method="function_calling", include_raw=True
         )
         explicit_cache = (
             _is_bailian_openai(profile)
-            and profile.model == "qwen3.8-flash"
-            and profile.params.get(BAILIAN_EXPLICIT_CACHE) is True
+            and profile.model in EXPLICIT_CACHE_MODELS
+            and profile.params.get(BAILIAN_EXPLICIT_CACHE) is not False
             and not profile.params.get("use_responses_api")
         )
         system: str | list[str | dict[str, Any]] = profile.prompt
@@ -115,8 +123,13 @@ class LangChainAi:
             if error.status_code < 500 and error.status_code not in RETRYABLE_STATUS:
                 raise Rejected(str(error)) from error
             raise
-        raw = answer["raw"]
-        if isinstance(raw, AIMessage) and (usage := raw.usage_metadata):
+        raw, usage = answer["raw"], None
+        if isinstance(raw, AIMessage) and (metadata := raw.usage_metadata):
+            usage = Usage(
+                input_tokens=metadata["input_tokens"],
+                output_tokens=metadata["output_tokens"],
+                cached_tokens=metadata.get("input_token_details", {}).get("cache_read"),
+            )
             log.info(
                 "prompt_cache_usage model=%s schema=%s prompt_version=%s "
                 "mode=%s prompt_tokens=%d cached_tokens=%s",
@@ -124,12 +137,12 @@ class LangChainAi:
                 schema.__name__,
                 profile.prompt_version,
                 "explicit" if explicit_cache else "default",
-                usage["input_tokens"],
-                usage.get("input_token_details", {}).get("cache_read"),
+                usage.input_tokens,
+                usage.cached_tokens,
             )
         if error := answer["parsing_error"]:
             raise error
-        return schema.model_validate(answer["parsed"])
+        return Answer(schema.model_validate(answer["parsed"]), usage)
 
     def _model(self, profile: AiProfile) -> BaseChatModel:
         options: dict[str, Any] = profile.model_params

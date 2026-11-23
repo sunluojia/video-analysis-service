@@ -5,7 +5,6 @@ import re
 import unicodedata
 from collections.abc import Sequence
 from enum import StrEnum
-from math import isfinite
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -128,12 +127,8 @@ class SkinTone(StrEnum):
 
 _LISTED_APPEARANCE_TAGS = frozenset([*AgeGroup, *SkinTone])
 """早期结果把年龄段和肤色直接写在标签里，靠这个列表认出来，汇总时一并带上。"""
-_DURATION_PREFIX = "视频时长"
-_VIDEO_DURATION_TAG = re.compile(r"视频时长([0-9]+(?:\.[0-9])?)秒")
-
-
-def _seconds(value: float) -> str:
-    return f"{value:.1f}".removesuffix(".0")
+DURATION_PREFIX = "视频时长"
+"""不统计时长：模型给出的时长标签一律丢掉。"""
 
 
 class Appearance(BaseModel):
@@ -198,10 +193,8 @@ class Recognition(BaseModel):
         )
         return list(dict.fromkeys(tags))
 
-    def display_tags(
-        self, listening: Listening, *, duration_seconds: float | None = None
-    ) -> list[str]:
-        """使用实测时长和独立听音结论，作者话题放在最后。"""
+    def display_tags(self, listening: Listening) -> list[str]:
+        """使用独立听音结论，作者话题放在最后。"""
         tags = []
         topics = []
         for tag in self.tags:
@@ -210,7 +203,7 @@ class Recognition(BaseModel):
             elif (
                 tag not in _SOUND_LABELS.values()
                 and not _size_label(tag)
-                and not tag.startswith(_DURATION_PREFIX)
+                and not tag.startswith(DURATION_PREFIX)
             ):
                 tags.append(tag)
         tags.extend(self.appearance_tags())
@@ -224,8 +217,6 @@ class Recognition(BaseModel):
             if sound in listening.sounds:
                 tags.append(label)
                 break
-        if duration_seconds is not None and isfinite(duration_seconds) and duration_seconds > 0:
-            tags.append(f"{_DURATION_PREFIX}{_seconds(duration_seconds)}秒")
         return list(dict.fromkeys([*tags, *topics, *self.published_topic_tags()]))
 
 
@@ -233,19 +224,7 @@ class CreatorTags(BaseModel):
     tags: list[str] = Field(description="对各视频标签语义去重后的创作者标签")
 
     def with_observed_tags(self, videos: Sequence[Recognition]) -> "CreatorTags":
-        """补上视频里观察到、汇总漏掉的年龄段和肤色；时长按各视频的实测值重写。"""
-        tags = [tag for tag in self.tags if not tag.startswith(_DURATION_PREFIX)]
+        """补上视频里观察到、汇总漏掉的年龄段和肤色；去掉时长标签。"""
+        tags = [tag for tag in self.tags if not tag.startswith(DURATION_PREFIX)]
         tags.extend(tag for video in videos for tag in video.appearance_tags())
-        durations = [
-            float(match[1])
-            for video in videos
-            for tag in video.tags
-            if (match := _VIDEO_DURATION_TAG.fullmatch(tag))
-        ]
-        if durations:
-            shortest, longest = min(durations), max(durations)
-            values = _seconds(shortest)
-            if shortest != longest:
-                values += f"–{_seconds(longest)}"
-            tags.append(f"{_DURATION_PREFIX}{values}秒")
         return self.model_copy(update={"tags": tags})

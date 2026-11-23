@@ -6,11 +6,12 @@ from pathlib import Path
 
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
-from video_analysis.modules.ai.call.models import AiProfile
+from video_analysis.modules.ai.call.models import AiProfile, Usage
 from video_analysis.modules.analysis.job.models import Material, MediaInfo
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition, Sound
 from video_analysis.modules.scheduling.execution.pipeline import Pipeline
 from video_analysis.modules.scheduling.execution.ports import (
+    Answer,
     Materials,
     Media,
     Rejected,
@@ -21,6 +22,7 @@ from video_analysis.modules.scheduling.execution.worker import Worker, WorkerLim
 from video_analysis.modules.scheduling.task.models import RetryPolicy
 
 NO_RETRY = RetryPolicy(max_attempts=1)
+USAGE = Usage(input_tokens=2000, output_tokens=100, cached_tokens=1500)
 
 
 class FakeMaterials(Materials):
@@ -78,22 +80,26 @@ class FakeAi(VideoAi):
         self.in_flight = 0
         self.peak = 0
 
-    async def listen(self, profile: AiProfile, audio: Path) -> Listening:
+    async def listen(self, profile: AiProfile, audio: Path) -> Answer[Listening]:
         await self._call(profile)
-        return Listening(sounds=[Sound.SPEECH], transcript=f"第{audio.stem}段")
+        return Answer(Listening(sounds=[Sound.SPEECH], transcript=f"第{audio.stem}段"), USAGE)
 
-    async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Recognition:
+    async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Answer[Recognition]:
         if material.description in self.slow:
             self.slow.remove(material.description)
             await asyncio.sleep(profile.timeout_seconds * 10)
         await self._call(profile)
         if material.description in self.rejected:
             raise Rejected("Error code: 400 - Input image data may contain inappropriate content")
-        return Recognition(tags=[material.description], summary=material.listening.transcript)
+        return Answer(
+            Recognition(tags=[material.description], summary=material.listening.transcript), USAGE
+        )
 
-    async def summarize(self, profile: AiProfile, videos: Sequence[Recognition]) -> CreatorTags:
+    async def summarize(
+        self, profile: AiProfile, videos: Sequence[Recognition]
+    ) -> Answer[CreatorTags]:
         await self._call(profile)
-        return CreatorTags(tags=[tag for video in videos for tag in video.tags])
+        return Answer(CreatorTags(tags=[tag for video in videos for tag in video.tags]), USAGE)
 
     async def _call(self, profile: AiProfile) -> None:
         self.models.append(profile.model)

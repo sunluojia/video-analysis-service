@@ -15,6 +15,7 @@ from video_analysis.core.storage.workspace import Workspace
 from video_analysis.core.web.authentication import ServiceToken
 from video_analysis.core.web.exception_handlers import register_exception_handlers
 from video_analysis.integrations.scheduler.client import SchedulerClient
+from video_analysis.modules.ai.call.router import router as ai_usage_router
 from video_analysis.modules.ai.config.router import router as ai_config_router
 from video_analysis.modules.ai.prompt.router import router as prompt_router
 from video_analysis.modules.analysis.batch.router import router as batch_router
@@ -22,7 +23,15 @@ from video_analysis.modules.analysis.job.router import router as job_router
 from video_analysis.modules.scheduling.status.router import router as status_router
 from video_analysis.modules.scheduling.task.router import router as control_router
 
-ROUTERS = (job_router, control_router, batch_router, status_router, ai_config_router, prompt_router)
+ROUTERS = (
+    job_router,
+    control_router,
+    batch_router,
+    status_router,
+    ai_config_router,
+    ai_usage_router,
+    prompt_router,
+)
 VERSION = version("video-analysis-service")
 
 

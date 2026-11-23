@@ -65,8 +65,8 @@ compose 自带 PostgreSQL 和 Redis，便于单独运行；和调度中心一起
 
 ### 百炼 Prompt Cache
 
-百炼支持隐式缓存的模型会自动尝试复用公共前缀。视频识别和作者汇总使用百炼 `qwen3.8-flash` 的 Chat Completions 接口时，可在调度中心打开「AI 配置 → 模型 → 编辑」，打开「显式 Prompt Cache」并保存。直接调用配置接口时，在模型的 `params` 顶层设置 `"bailian_explicit_cache": true`。工具定义随系统提示词参与缓存，业务数据和媒体位于后续消息。
+百炼支持隐式缓存的模型会自动尝试复用公共前缀。用 Chat Completions 接口调用支持显式缓存的百炼模型（如 `qwen3.6-plus`、`qwen3.8-flash`，完整列表见 `EXPLICIT_CACHE_MODELS`）时，默认开启显式缓存：系统提示词带 `cache_control`，工具定义随系统提示词参与缓存，业务数据和媒体位于后续消息。要关掉，在调度中心「AI 配置 → 模型 → 编辑」关闭「显式 Prompt Cache」；直接调用配置接口时，在模型的 `params` 顶层设置 `"bailian_explicit_cache": false`。
 
-显式缓存的公共前缀至少需要 1024 个 token，有效期为 5 分钟，命中会续期。缓存写入按百炼规则计费，适合短时间内反复使用同一版长提示词的任务。[百炼上下文缓存](https://help.aliyun.com/zh/model-studio/context-cache)
+显式缓存的公共前缀至少需要 1024 个 token，有效期为 5 分钟，命中会续期。创建缓存按输入单价的 125% 计费，命中部分按 10% 计费，适合短时间内反复使用同一版长提示词的任务。[百炼上下文缓存](https://help.aliyun.com/zh/model-studio/context-cache)
 
-Worker 的 `prompt_cache_usage` 日志记录模型、结果结构、提示词版本、缓存模式、`prompt_tokens` 和 `cached_tokens`。对同一模型、结果结构和提示词版本，按 `sum(cached_tokens) / sum(prompt_tokens)` 比较两种模式的输入 token 命中率。日志中的 `None` 表示服务商未报告该字段。计算命中率时使用有报告的样本，并查看字段的覆盖率。
+每次模型调用的输入、输出和命中缓存的 token 记在 `ai_calls` 里。`GET /api/ai/usage` 按时段、环节和模型汇总调用次数、成败、token、缓存命中和调用总耗时，调度中心的数据看板和「AI 配置 → 模型」的“缓存命中（24 小时）”列都用它。命中率 = 命中的 token ÷ 报告了命中数的调用的输入 token；服务商没报告命中数的调用不计入。Worker 的 `prompt_cache_usage` 日志仍逐条记录模型、结果结构、提示词版本、缓存模式、`prompt_tokens` 和 `cached_tokens`。
