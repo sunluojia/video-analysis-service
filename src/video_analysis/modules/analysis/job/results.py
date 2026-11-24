@@ -125,8 +125,9 @@ class SkinTone(StrEnum):
     NEUTRAL = "中性肤色"
 
 
-_LISTED_APPEARANCE_TAGS = frozenset([*AgeGroup, *SkinTone])
-"""早期结果把年龄段和肤色直接写在标签里，靠这个列表认出来，汇总时一并带上。"""
+_AGE = re.compile(r"\d+(?:-\d+)?岁(?:\+|左右|以上|以下|及以上|及以下)?")
+_UNSURE = ("无法", "未知", "不确定")
+"""“无法判断肤色”这类没下结论的值不当标签。"""
 DURATION_PREFIX = "视频时长"
 """不统计时长：模型给出的时长标签一律丢掉。"""
 
@@ -184,14 +185,19 @@ class Recognition(BaseModel):
         return [f"#{text}" for text in translations if text]
 
     def appearance_tags(self) -> list[str]:
-        tags = [tag for tag in self.tags if tag in _LISTED_APPEARANCE_TAGS]
-        tags.extend(
+        """画面里看到的年龄段和肤色；早期结果直接写在标签里，一并认出来。"""
+        values = [tag for tag in self.tags if _is_appearance(tag)]
+        values += [
             value
             for observation in self.appearances
             for value in (observation.age_group, observation.skin_tone)
             if value is not None
+        ]
+        return list(
+            dict.fromkeys(
+                value for value in values if _is_appearance(value) and not value.startswith(_UNSURE)
+            )
         )
-        return list(dict.fromkeys(tags))
 
     def display_tags(self, listening: Listening) -> list[str]:
         """使用独立听音结论，作者话题放在最后。"""
@@ -204,6 +210,7 @@ class Recognition(BaseModel):
                 tag not in _SOUND_LABELS.values()
                 and not _size_label(tag)
                 and not tag.startswith(DURATION_PREFIX)
+                and not _is_appearance(tag)  # 年龄段和肤色统一由 appearance_tags 给出
             ):
                 tags.append(tag)
         tags.extend(self.appearance_tags())
@@ -224,7 +231,16 @@ class CreatorTags(BaseModel):
     tags: list[str] = Field(description="对各视频标签语义去重后的创作者标签")
 
     def with_observed_tags(self, videos: Sequence[Recognition]) -> "CreatorTags":
-        """补上视频里观察到、汇总漏掉的年龄段和肤色；去掉时长标签。"""
-        tags = [tag for tag in self.tags if not tag.startswith(DURATION_PREFIX)]
-        tags.extend(tag for video in videos for tag in video.appearance_tags())
-        return self.model_copy(update={"tags": tags})
+        """年龄段和肤色只留视频里看到的，补上汇总漏掉的；去掉时长标签，重复的只留一个。"""
+        observed = [tag for video in videos for tag in video.appearance_tags()]
+        tags = [
+            tag
+            for tag in self.tags
+            if not tag.startswith(DURATION_PREFIX) and (not _is_appearance(tag) or tag in observed)
+        ]
+        return self.model_copy(update={"tags": list(dict.fromkeys([*tags, *observed]))})
+
+
+def _is_appearance(tag: str) -> bool:
+    """像年龄段（如“25-34岁”“30岁左右”）或肤色（以“肤色”结尾）的标签。"""
+    return bool(_AGE.fullmatch(tag)) or tag.endswith("肤色")

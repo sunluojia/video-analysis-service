@@ -53,7 +53,7 @@ PowerShell 中先执行 `$env:VA_TEST_DATABASE_URL = "postgresql+asyncpg://video
 docker compose -f deployment/compose.yaml up -d --build
 ```
 
-compose 自带 PostgreSQL 和 Redis，便于单独运行；和调度中心一起部署时，把 `VA_REDIS_URL` 改为调度中心使用的 Redis。API 发布在 8000 端口供调度中心经局域网访问，`VA_PUBLIC_URL` 设为调度中心能访问到的地址。
+compose 自带 PostgreSQL 和 Redis，便于单独运行；和调度中心一起部署时，把 `deployment/compose.yaml` 里的 `VA_REDIS_URL` 改为调度中心使用的 Redis。compose 里写的数据库和 Redis 地址会覆盖 `.env`（`.env` 里是源码运行用的本机地址），改 `.env` 不起作用。API 发布在 8000 端口供调度中心经局域网访问，`VA_PUBLIC_URL` 设为调度中心能访问到的地址。
 
 ## 首次使用
 

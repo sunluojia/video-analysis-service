@@ -1,9 +1,11 @@
 import pytest
 
 from video_analysis.modules.analysis.job.results import (
+    AgeGroup,
     CreatorTags,
     Listening,
     Recognition,
+    SkinTone,
     Sound,
     TopicTranslation,
     merge_listening,
@@ -184,6 +186,12 @@ def test_creator_keeps_only_appearance_values_seen_in_its_videos():
         "偏黄肤色",
         "18-24岁",
     ]
+
+
+def test_listed_values_in_old_tags_count_as_appearance():
+    listed = [*AgeGroup, *SkinTone]
+
+    assert Recognition(tags=["美妆", *listed], summary="").appearance_tags() == listed
 
 
 def test_duration_is_not_a_tag():

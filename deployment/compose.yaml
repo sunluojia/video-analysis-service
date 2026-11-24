@@ -9,7 +9,8 @@ x-app: &app
       required: false
   environment:
     VA_DATABASE_URL: postgresql+asyncpg://video:video@postgres:5432/video_analysis
-    # 与调度中心使用同一个 Redis；和调度中心一起部署时改为它的地址。
+    # 容器用这里的地址，会覆盖 .env 里源码运行用的本机地址。
+    # 与调度中心使用同一个 Redis；和调度中心一起部署时在这里改为它的地址。
     VA_REDIS_URL: redis://redis:6379/0
   volumes:
     # 下载的视频、抽帧图片和音频段，Worker 与 API 共享。
@@ -69,8 +70,8 @@ services:
   worker:
     <<: *app
     command: video-analysis-worker
-    # 停止时等已发出的 AI 请求完成，不少于模型超时时间。
-    stop_grace_period: 3m
+    # 停止时等已发出的 AI 请求完成，要比模型超时（默认 240 秒）长，否则请求被强行中断，只能转人工核查。
+    stop_grace_period: 5m
     depends_on:
       migrate:
         condition: service_completed_successfully

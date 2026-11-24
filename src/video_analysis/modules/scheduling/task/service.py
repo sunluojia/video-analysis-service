@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_analysis.core.common.clock import utcnow
 from video_analysis.modules.analysis.job.models import Job, JobStatus
 from video_analysis.modules.analysis.job.repository import JobRepository
-from video_analysis.modules.scheduling.task.models import TaskStatus
+from video_analysis.modules.scheduling.task.models import Task, TaskKind, TaskStatus
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 
 RETRYABLE = (TaskStatus.FAILED, TaskStatus.NEEDS_REVIEW)
@@ -39,15 +39,26 @@ class TaskService:
         return [job for job in await self._jobs.of_batch(batch_id) if await self._cancel(job)]
 
     async def _retry(self, job: Job) -> bool:
-        """从失败或待核查的阶段继续，已完成的阶段不重做。"""
-        stuck = await self._tasks.of_job(job.id, statuses=RETRYABLE, lock=True)
+        """从失败或待核查的阶段继续，已完成的阶段不重做。
+
+        抽帧图片和音频段已过保留期清理掉时，从获取视频重新开始，免得拿空图片去识别。
+        """
+        tasks = await self._tasks.of_job(job.id, lock=True)
         await self._jobs.require(Job, job.id, lock=True)
-        now = utcnow()
-        for task in stuck:
-            task.retry(now)
-        if stuck:
-            job.reopen()
-        return bool(stuck)
+        stuck = [task for task in tasks if task.status in RETRYABLE]
+        if not stuck:
+            return False
+        if job.artifacts_discarded:
+            for task in tasks:
+                await self._tasks.delete(task)
+            job.prepare_again()
+            self._tasks.add(Task(TaskKind.FETCH, job.id))
+        else:
+            now = utcnow()
+            for task in stuck:
+                task.retry(now)
+        job.reopen()
+        return True
 
     async def _cancel(self, job: Job) -> bool:
         """不再推进，派生文件随后清理；已完成和已取消的任务不变。在途请求的结果会被丢弃。"""

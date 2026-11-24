@@ -244,6 +244,41 @@ async def test_timed_out_request_waits_for_review_instead_of_resending(database,
     await setup.run_until(emitted(database, **COMPLETED))
 
 
+async def test_retry_after_files_expire_starts_again_from_the_video(database, workspace):
+    """抽帧图片和音频段过了保留期再补跑：重新下载视频、抽帧，不拿空图片去识别。"""
+    setup = Setup(
+        database,
+        workspace,
+        ai=FakeAi(slow={"美妆"}),
+        media=FakeMedia(segments=0),
+        retention=timedelta(0),
+    )
+    await configure_ai(database, timeout=0.2)
+    await accept(database, video_message())
+    await setup.run_until(emitted(database, type="job", status="needs_review"))
+    await setup.pipeline.discard_expired()
+
+    async with database.transaction() as session:
+        job = await TaskService(session).retry_job("j-1")
+    assert job.status == JobStatus.PROCESSING
+    assert await task_states(database) == {(TaskKind.FETCH, TaskStatus.READY)}
+
+    await setup.run_until(emitted(database, **COMPLETED))
+    assert setup.materials.downloads == 2
+
+
+async def test_recognition_without_frames_fails_instead_of_guessing(database, workspace):
+    media = FakeMedia(segments=0)
+    media.frame_count = 0
+    setup = Setup(database, workspace, media=media)
+    await configure_ai(database)
+    await accept(database, video_message())
+
+    await setup.run_until(emitted(database, type="job", status="failed"))
+    assert (TaskKind.RECOGNIZE, TaskStatus.FAILED) in await task_states(database)
+    assert setup.ai.models == []
+
+
 async def test_rejected_request_fails_at_once_instead_of_retrying(database, workspace):
     setup = Setup(
         database,

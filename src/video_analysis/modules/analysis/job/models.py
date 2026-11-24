@@ -139,6 +139,19 @@ class Job:
             self.error = error
             self.finished_at = now
 
+    @property
+    def artifacts_discarded(self) -> bool:
+        """已结束的视频任务，抽帧图片和音频段过了保留期已经清理。"""
+        return (
+            self.kind == JobKind.VIDEO
+            and self.finished_at is not None
+            and self.artifacts_until is None
+        )
+
+    def prepare_again(self) -> None:
+        """补跑时重新获取视频、抽帧和听音。"""
+        self.duration = self.frame_count = self.segment_count = self.analysis_key = None
+
     def reopen(self) -> None:
         """补跑：从已保存的阶段继续。"""
         self.status = JobStatus.PROCESSING

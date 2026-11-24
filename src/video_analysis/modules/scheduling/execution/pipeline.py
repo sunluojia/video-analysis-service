@@ -129,10 +129,11 @@ class Pipeline:
                 answer = await self._ai.listen(profile, segment)
                 return answer.value, answer.usage
 
+            frames = self._workspace.frames(job.id)
+            if not frames:
+                raise Rejected("没有抽帧图片，不能识别；请重新分析这个视频")
             video, listening = job.video, await self._listening(job.id)
-            material = VideoMaterial(
-                self._workspace.frames(job.id), listening, video.description, video.topics
-            )
+            material = VideoMaterial(frames, listening, video.description, video.topics)
             answer = await self._ai.recognize(profile, material)
             return (listening, answer.value), answer.usage
 
