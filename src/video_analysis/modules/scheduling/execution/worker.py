@@ -26,7 +26,14 @@ from video_analysis.modules.analysis.job.models import Job, JobStatus
 from video_analysis.modules.analysis.job.repository import JobRepository
 from video_analysis.modules.analysis.upstream.service import UpstreamService
 from video_analysis.modules.scheduling.execution.pipeline import Pipeline
-from video_analysis.modules.scheduling.task.models import AI_KINDS, MEDIA_KINDS, Task, TaskKind
+from video_analysis.modules.scheduling.task.attempts import AttemptRepository
+from video_analysis.modules.scheduling.task.models import (
+    AI_KINDS,
+    MEDIA_KINDS,
+    Task,
+    TaskKind,
+    WorkerIdentity,
+)
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 
 log = logging.getLogger(__name__)
@@ -49,16 +56,23 @@ class WorkerLimits:
     listen_per_video: int
     media_timeout: timedelta
     poll_interval: float
+    artifact_cleanup_enabled: bool = True
 
 
 class Worker:
     def __init__(
-        self, database: Database, pipeline: Pipeline, workspace: Workspace, limits: WorkerLimits
+        self,
+        database: Database,
+        pipeline: Pipeline,
+        workspace: Workspace,
+        limits: WorkerLimits,
+        identity: WorkerIdentity,
     ) -> None:
         self._database = database
         self._pipeline = pipeline
         self._workspace = workspace
         self._limits = limits
+        self._identity = identity
         self._jobs: dict[asyncio.Task, TaskKind] = {}
         self._wake = asyncio.Event()
         self._stopping = False
@@ -67,7 +81,8 @@ class Worker:
         while not self._stopping:
             try:
                 await self._pipeline.recover_expired()
-                await self._pipeline.discard_expired()
+                if self._limits.artifact_cleanup_enabled:
+                    await self._pipeline.discard_expired()
                 await self._dispatch()
             except Exception as error:
                 log.error("调度失败，稍后重试", exc_info=error)
@@ -161,11 +176,11 @@ class Worker:
             profile = await CallService(session).profile(pool.model_id, kind)
             timeout = timedelta(seconds=profile.timeout_seconds)
             await self._begin(session, task, now, timeout, profile)
-            await CallRepository(session).start(task, profile)
+            await CallRepository(session).start(task, profile, worker_id=self._identity.worker_id)
             return task, profile
 
-    @staticmethod
     async def _begin(
+        self,
         session: AsyncSession,
         task: Task,
         now: datetime,
@@ -178,7 +193,8 @@ class Worker:
         if job.status == JobStatus.ACCEPTED:
             job.start()
         await TaskRepository(session).mark_dispatched(task, now)
-        await UpstreamService(session).report_task(job, task, now, profile)
+        await AttemptRepository(session).start(job, task, self._identity)
+        await UpstreamService(session).report_task(job, task, now, profile, worker=self._identity)
 
     def _start(self, task: Task, profile: AiProfile | None = None) -> None:
         job = asyncio.create_task(self._pipeline.run(task, profile))

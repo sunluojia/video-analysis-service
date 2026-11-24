@@ -194,9 +194,10 @@ def test_listed_values_in_old_tags_count_as_appearance():
     assert Recognition(tags=["美妆", *listed], summary="").appearance_tags() == listed
 
 
-def test_duration_is_not_a_tag():
-    recognition = Recognition(tags=["生活记录", "视频时长8秒", "#美食"], summary="")
+@pytest.mark.parametrize("prefix", ["", " ", "\t\u3000"])
+def test_duration_is_not_a_tag(prefix):
+    recognition = Recognition(tags=["生活记录", f"{prefix}视频时长8秒", "#美食"], summary="")
 
     assert recognition.display_tags(Listening(sounds=[])) == ["生活记录", "#美食"]
-    summary = CreatorTags(tags=["生活记录", "视频时长8–31秒"])
+    summary = CreatorTags(tags=["生活记录", f"{prefix}视频时长8–31秒"])
     assert summary.with_observed_tags([recognition]).tags == ["生活记录"]

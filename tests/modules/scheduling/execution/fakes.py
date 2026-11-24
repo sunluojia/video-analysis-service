@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Collection, Sequ
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from pathlib import Path
+from uuid import uuid4
 
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
@@ -19,7 +20,7 @@ from video_analysis.modules.scheduling.execution.ports import (
     VideoMaterial,
 )
 from video_analysis.modules.scheduling.execution.worker import Worker, WorkerLimits
-from video_analysis.modules.scheduling.task.models import RetryPolicy
+from video_analysis.modules.scheduling.task.models import RetryPolicy, WorkerIdentity
 
 NO_RETRY = RetryPolicy(max_attempts=1)
 USAGE = Usage(input_tokens=2000, output_tokens=100, cached_tokens=1500)
@@ -148,7 +149,14 @@ class Setup:
             retention,
         )
 
-    def worker(self, *, admission_factor: float = 10, backlog: int = 10) -> Worker:
+    def worker(
+        self,
+        *,
+        admission_factor: float = 10,
+        backlog: int = 10,
+        identity: WorkerIdentity | None = None,
+        artifact_cleanup_enabled: bool = True,
+    ) -> Worker:
         limits = WorkerLimits(
             download_slots=4,
             media_slots=2,
@@ -158,8 +166,15 @@ class Setup:
             listen_per_video=2,
             media_timeout=timedelta(seconds=5),
             poll_interval=0.05,
+            artifact_cleanup_enabled=artifact_cleanup_enabled,
         )
-        return Worker(self.database, self.pipeline, self.workspace, limits)
+        return Worker(
+            self.database,
+            self.pipeline,
+            self.workspace,
+            limits,
+            identity or WorkerIdentity("test-worker", uuid4()),
+        )
 
     @asynccontextmanager
     async def running(self, *, workers: int = 1, **limits) -> AsyncIterator[None]:

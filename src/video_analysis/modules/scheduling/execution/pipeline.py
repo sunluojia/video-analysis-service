@@ -29,7 +29,14 @@ from video_analysis.modules.scheduling.execution.ports import (
     VideoAi,
     VideoMaterial,
 )
-from video_analysis.modules.scheduling.task.models import RetryPolicy, Task, TaskKind, TaskStatus
+from video_analysis.modules.scheduling.task.attempts import AttemptRepository
+from video_analysis.modules.scheduling.task.models import (
+    RetryPolicy,
+    Task,
+    TaskKind,
+    TaskStatus,
+    WorkerIdentity,
+)
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 
 log = logging.getLogger(__name__)
@@ -192,6 +199,7 @@ class Pipeline:
     ) -> None:
         tasks, upstream = TaskRepository(session), UpstreamService(session)
         job = await JobRepository(session).require(Job, task.job_id, lock=True)
+        generation = task.retry_generation
         match task.kind:
             case TaskKind.FETCH if isinstance(output, Job):
                 task.succeed(now, {"reused_from": output.external_id})
@@ -209,9 +217,9 @@ class Pipeline:
                 )
                 job.fetched(output)
                 job.analysis_key = await self._analysis_key(session, job)
-                tasks.add(Task(TaskKind.EXTRACT_FRAMES, job.id))
+                tasks.add(Task(TaskKind.EXTRACT_FRAMES, job.id, retry_generation=generation))
                 if output.has_audio:
-                    tasks.add(Task(TaskKind.EXTRACT_AUDIO, job.id))
+                    tasks.add(Task(TaskKind.EXTRACT_AUDIO, job.id, retry_generation=generation))
             case TaskKind.EXTRACT_FRAMES:
                 job.frame_count = output
                 task.succeed(now, _frames_result(job))
@@ -219,7 +227,7 @@ class Pipeline:
                 job.segment_count = output
                 task.succeed(now, _audio_result(job, self._media.segment_seconds))
                 for segment in range(output):
-                    tasks.add(Task(TaskKind.LISTEN, job.id, segment))
+                    tasks.add(Task(TaskKind.LISTEN, job.id, segment, retry_generation=generation))
             case TaskKind.LISTEN:
                 task.succeed(now, output.model_dump(mode="json"))
             case TaskKind.RECOGNIZE:
@@ -244,17 +252,23 @@ class Pipeline:
                 ]
                 job.complete({**result, "videos": videos}, now)
 
-        await upstream.report_task(job, task, now, profile)
+        worker = await AttemptRepository(session).finish(task, now)
+        await upstream.report_task(job, task, now, profile, worker=worker)
         if task.kind == TaskKind.FETCH and job.segment_count == 0:
             await upstream.report_skipped(
-                job, TaskKind.EXTRACT_AUDIO, "视频没有音轨，不需要听音", now
+                job,
+                TaskKind.EXTRACT_AUDIO,
+                "视频没有音轨，不需要听音",
+                now,
+                worker=worker,
+                retry_generation=generation,
             )
         if task.kind in PREPARATION and job.ready_for_recognition(
             len(await tasks.listen_results(job.id))
         ):
-            tasks.add(Task(TaskKind.RECOGNIZE, job.id))
+            tasks.add(Task(TaskKind.RECOGNIZE, job.id, retry_generation=generation))
         if job.status == JobStatus.COMPLETED:
-            await self._settle(upstream, job, now)
+            await self._settle(upstream, job, task, now, worker)
 
     async def _record_failure(
         self,
@@ -271,20 +285,36 @@ class Pipeline:
             task.fail(message, now, None if isinstance(error, Rejected) else self._retry)
         upstream = UpstreamService(session)
         job = await JobRepository(session).require(Job, task.job_id, lock=True)
-        await upstream.report_task(job, task, now, profile)
+        worker = await AttemptRepository(session).finish(task, now)
+        await upstream.report_task(job, task, now, profile, worker=worker)
         if task.status == TaskStatus.READY:
             return
         if task.status == TaskStatus.NEEDS_REVIEW:
+            if job.status == JobStatus.FAILED:
+                return
             job.hold_for_review(message, now)
         else:
             job.fail(message, now)
-        await self._settle(upstream, job, now)
+        await self._settle(upstream, job, task, now, worker)
 
-    async def _settle(self, upstream: UpstreamService, job: Job, now: datetime) -> None:
+    async def _settle(
+        self,
+        upstream: UpstreamService,
+        job: Job,
+        task: Task,
+        now: datetime,
+        worker: WorkerIdentity | None,
+    ) -> None:
         """任务结束：确定抽帧图片和音频段的保留期，回传结果。"""
         if job.kind == JobKind.VIDEO and not job.reused_from:
             job.artifacts_until = now + self._retention
-        await upstream.report_job(job, now)
+        await upstream.report_job(
+            job,
+            now,
+            worker=worker,
+            attempt_id=task.lease_id,
+            retry_generation=task.retry_generation,
+        )
 
     async def _analysis_key(
         self, session: AsyncSession, job: Job, recognize: AiProfile | None = None

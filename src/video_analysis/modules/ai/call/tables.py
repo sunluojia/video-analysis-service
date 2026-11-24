@@ -15,6 +15,7 @@ ai_calls = Table(
     Column("model_id", Uuid, nullable=False),
     Column("model", String(200)),
     Column("prompt_id", reference("ai_prompts.id")),
+    Column("worker_id", String(128)),
     Column("started_at", timestamp(), nullable=False),
     Column("deadline", timestamp(), nullable=False),
     Column("finished_at", timestamp()),

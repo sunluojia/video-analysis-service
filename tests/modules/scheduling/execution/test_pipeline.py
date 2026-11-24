@@ -124,6 +124,10 @@ async def test_video_without_audio_track_skips_listening(database, workspace):
         "extract_audio",
         {"skip_reason": "视频没有音轨，不需要听音"},
     )
+    [fetched] = await events(database, stage="fetch", status="succeeded")
+    assert skipped["executor_id"] == fetched["executor_id"] == "test-worker"
+    assert skipped["executor_session_id"] == fetched["executor_session_id"]
+    assert skipped["attempt_id"] is None
     assert len(setup.ai.prompts) == 1
 
 
@@ -265,6 +269,10 @@ async def test_retry_after_files_expire_starts_again_from_the_video(database, wo
 
     await setup.run_until(emitted(database, **COMPLETED))
     assert setup.materials.downloads == 2
+    for stage in ("fetch", "recognize"):
+        started = await events(database, stage=stage, status="started")
+        assert [event["retry_generation"] for event in started] == [0, 1]
+        assert [event["attempt"] for event in started] == [1, 1]
 
 
 async def test_recognition_without_frames_fails_instead_of_guessing(database, workspace):
@@ -293,6 +301,11 @@ async def test_rejected_request_fails_at_once_instead_of_retrying(database, work
     await setup.run_until(emitted(database, type="job", status="failed"))
     assert (TaskKind.RECOGNIZE, TaskStatus.FAILED) in await task_states(database)
     assert setup.ai.models == ["test-model"]
+    [stage] = await events(database, type="stage", status="failed")
+    [job] = await events(database, type="job", status="failed")
+    assert job["executor_id"] == stage["executor_id"] == "test-worker"
+    assert job["executor_session_id"] == stage["executor_session_id"]
+    assert job["attempt_id"] == stage["attempt_id"]
 
 
 async def test_new_run_analyzes_again_with_the_newly_activated_prompt(database, setup):
@@ -392,3 +405,18 @@ async def test_files_are_removed_once_the_retention_period_ends(database, worksp
         await wait_until(removed)
 
     assert (await load_job(database)).artifacts_until is None
+
+
+async def test_retention_cleanup_can_be_disabled(database, workspace):
+    setup = Setup(database, workspace, retention=timedelta(0))
+    await configure_ai(database)
+    await accept(database, video_message())
+    job = await load_job(database)
+
+    async with setup.running(artifact_cleanup_enabled=False):
+        await wait_until(emitted(database, **COMPLETED))
+        await accept(database, summary_message("美妆"))
+        await wait_until(emitted(database, **COMPLETED, kind="summary"))
+
+    assert setup.workspace.frames(job.id)
+    assert (await load_job(database)).artifacts_until <= utcnow()

@@ -13,7 +13,7 @@ from video_analysis.modules.analysis.job.models import (
     SummaryInput,
     VideoInput,
 )
-from video_analysis.modules.scheduling.task.models import Task, TaskKind, TaskStatus
+from video_analysis.modules.scheduling.task.models import Task, TaskKind, TaskStatus, WorkerIdentity
 
 Label = Annotated[str, Field(min_length=1, max_length=128)]
 
@@ -69,9 +69,21 @@ class JobEvent(BaseModel):
     reused_from: str | None = None
     artifacts_until: datetime | None = None
     """抽帧图片和音频段可以获取到此时。"""
+    executor_id: str | None = None
+    executor_session_id: UUID | None = None
+    attempt_id: UUID | None = None
+    retry_generation: int | None = Field(default=None, ge=0)
 
     @classmethod
-    def of(cls, job: Job, now: datetime) -> Self:
+    def of(
+        cls,
+        job: Job,
+        now: datetime,
+        *,
+        worker: WorkerIdentity | None = None,
+        attempt_id: UUID | None = None,
+        retry_generation: int | None = None,
+    ) -> Self:
         return cls(
             job_id=job.external_id,
             run=job.run,
@@ -82,6 +94,10 @@ class JobEvent(BaseModel):
             error=job.error,
             reused_from=job.reused_from,
             artifacts_until=job.artifacts_until,
+            executor_id=worker.worker_id if worker else None,
+            executor_session_id=worker.worker_session_id if worker else None,
+            attempt_id=attempt_id,
+            retry_generation=retry_generation,
         )
 
 
@@ -103,9 +119,21 @@ class StageEvent(BaseModel):
     result: dict | None = None
     error: str | None = None
     retry_at: datetime | None = None
+    executor_id: str | None = None
+    executor_session_id: UUID | None = None
+    attempt_id: UUID | None = None
+    retry_generation: int = 0
 
     @classmethod
-    def of(cls, job: Job, task: Task, now: datetime, profile: AiProfile | None = None) -> Self:
+    def of(
+        cls,
+        job: Job,
+        task: Task,
+        now: datetime,
+        profile: AiProfile | None = None,
+        *,
+        worker: WorkerIdentity | None = None,
+    ) -> Self:
         status = STAGE_STATUS[task.status]
         return cls(
             job_id=job.external_id,
@@ -120,4 +148,8 @@ class StageEvent(BaseModel):
             result=task.result if status == StageStatus.SUCCEEDED else None,
             error=task.error,
             retry_at=task.run_after if status == StageStatus.RETRYING else None,
+            executor_id=worker.worker_id if worker else None,
+            executor_session_id=worker.worker_session_id if worker else None,
+            attempt_id=task.lease_id,
+            retry_generation=task.retry_generation,
         )

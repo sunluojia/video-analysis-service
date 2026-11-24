@@ -209,7 +209,7 @@ class Recognition(BaseModel):
             elif (
                 tag not in _SOUND_LABELS.values()
                 and not _size_label(tag)
-                and not tag.startswith(DURATION_PREFIX)
+                and not tag.lstrip().startswith(DURATION_PREFIX)
                 and not _is_appearance(tag)  # 年龄段和肤色统一由 appearance_tags 给出
             ):
                 tags.append(tag)
@@ -236,7 +236,8 @@ class CreatorTags(BaseModel):
         tags = [
             tag
             for tag in self.tags
-            if not tag.startswith(DURATION_PREFIX) and (not _is_appearance(tag) or tag in observed)
+            if not tag.lstrip().startswith(DURATION_PREFIX)
+            and (not _is_appearance(tag) or tag in observed)
         ]
         return self.model_copy(update={"tags": list(dict.fromkeys([*tags, *observed]))})
 

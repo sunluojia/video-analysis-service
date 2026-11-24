@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +18,13 @@ from video_analysis.modules.analysis.upstream.messages import (
     StageStatus,
     SummarizeCreator,
 )
-from video_analysis.modules.scheduling.task.models import Task, TaskKind
+from video_analysis.modules.scheduling.task.attempts import AttemptRepository
+from video_analysis.modules.scheduling.task.models import (
+    AttemptStatus,
+    Task,
+    TaskKind,
+    WorkerIdentity,
+)
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 
 
@@ -30,6 +37,7 @@ class UpstreamService:
     def __init__(self, session: AsyncSession) -> None:
         self._jobs = JobRepository(session)
         self._tasks = TaskRepository(session)
+        self._attempts = AttemptRepository(session)
         self._batches = BatchRepository(session)
         self._outbox = Outbox(session)
 
@@ -39,15 +47,42 @@ class UpstreamService:
     async def accept_summary(self, message: SummarizeCreator) -> None:
         await self._accept(message, JobKind.SUMMARY, SummaryInput, TaskKind.SUMMARIZE)
 
-    async def report_job(self, job: Job, now: datetime) -> None:
-        await self._outbox.put(JobEvent.of(job, now))
+    async def report_job(
+        self,
+        job: Job,
+        now: datetime,
+        *,
+        worker: WorkerIdentity | None = None,
+        attempt_id: UUID | None = None,
+        retry_generation: int | None = None,
+    ) -> None:
+        await self._outbox.put(
+            JobEvent.of(
+                job, now, worker=worker, attempt_id=attempt_id, retry_generation=retry_generation
+            )
+        )
 
     async def report_task(
-        self, job: Job, task: Task, now: datetime, profile: AiProfile | None = None
+        self,
+        job: Job,
+        task: Task,
+        now: datetime,
+        profile: AiProfile | None = None,
+        *,
+        worker: WorkerIdentity | None = None,
     ) -> None:
-        await self._outbox.put(StageEvent.of(job, task, now, profile))
+        await self._outbox.put(StageEvent.of(job, task, now, profile, worker=worker))
 
-    async def report_skipped(self, job: Job, stage: TaskKind, reason: str, now: datetime) -> None:
+    async def report_skipped(
+        self,
+        job: Job,
+        stage: TaskKind,
+        reason: str,
+        now: datetime,
+        *,
+        worker: WorkerIdentity | None,
+        retry_generation: int,
+    ) -> None:
         event = StageEvent(
             job_id=job.external_id,
             run=job.run,
@@ -55,6 +90,9 @@ class UpstreamService:
             status=StageStatus.SKIPPED,
             occurred_at=now,
             result={"skip_reason": reason},
+            executor_id=worker.worker_id if worker else None,
+            executor_session_id=worker.worker_session_id if worker else None,
+            retry_generation=retry_generation,
         )
         await self._outbox.put(event)
 
@@ -65,7 +103,6 @@ class UpstreamService:
 
         已取消的批次不再受理，包括取消前已经进入队列的任务。
         """
-        now = utcnow()
         values = message.model_dump(mode="json", include=set(inputs.model_fields))
         job = await self._jobs.by_external_id(message.job_id)
         previous = []
@@ -76,6 +113,7 @@ class UpstreamService:
                 return
         if not await self._batches.accepting(message.batch_id):
             return
+        now = utcnow()
         if job is None:
             job = Job(
                 kind,
@@ -88,6 +126,7 @@ class UpstreamService:
             )
             self._jobs.add(job)
         else:
+            await self._attempts.abandon(previous, AttemptStatus.SUPERSEDED, now)
             for task in previous:
                 await self._tasks.delete(task)
             job.restart(message.run, values, now)

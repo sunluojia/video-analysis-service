@@ -18,7 +18,7 @@ from video_analysis.integrations.mq.publisher import EventPublisher
 from video_analysis.integrations.scheduler.client import SchedulerClient
 from video_analysis.modules.scheduling.execution.pipeline import Pipeline
 from video_analysis.modules.scheduling.execution.worker import Worker, WorkerLimits
-from video_analysis.modules.scheduling.task.models import RetryPolicy
+from video_analysis.modules.scheduling.task.models import RetryPolicy, WorkerIdentity
 
 log = logging.getLogger(__name__)
 
@@ -53,8 +53,10 @@ async def run(settings: WorkerSettings) -> None:
         listen_per_video=settings.listen_per_video,
         media_timeout=media_timeout,
         poll_interval=settings.poll_interval_seconds,
+        artifact_cleanup_enabled=settings.artifact_cleanup_enabled,
     )
-    worker = Worker(database, pipeline, workspace, limits)
+    identity = WorkerIdentity(settings.worker_id, settings.worker_session_id)
+    worker = Worker(database, pipeline, workspace, limits, identity)
     publisher = EventPublisher(
         database, create_broker(settings), settings.event_queue, settings.event_actor
     )

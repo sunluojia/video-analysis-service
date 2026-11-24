@@ -7,7 +7,7 @@ from video_analysis.modules.ai.config.tables import ai_models, ai_providers, ai_
 from video_analysis.modules.ai.prompt.tables import ai_prompts
 from video_analysis.modules.analysis.batch.tables import batches
 from video_analysis.modules.analysis.job.tables import jobs
-from video_analysis.modules.scheduling.task.tables import tasks
+from video_analysis.modules.scheduling.task.tables import analysis_attempts, tasks
 
 __all__ = [
     "ai_calls",
@@ -15,6 +15,7 @@ __all__ = [
     "ai_prompts",
     "ai_providers",
     "ai_routes",
+    "analysis_attempts",
     "batches",
     "jobs",
     "metadata",

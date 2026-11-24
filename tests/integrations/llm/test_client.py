@@ -77,14 +77,14 @@ async def test_recognition_keeps_only_appearance_observations_with_a_frame(tmp_p
     assert result.appearance_tags() == ["白肤色"]
 
 
-async def test_summary_retains_distinct_appearances_from_old_and_new_results(monkeypatch):
+async def test_summary_keeps_observed_appearances_without_video_durations(monkeypatch):
     client = LangChainAi()
-    response = CreatorTags(tags=["生活记录", "白肤色", "白肤色", "55岁+"])
+    response = CreatorTags(tags=["生活记录", "白肤色", "白肤色", "55岁+", "视频时长99秒"])
     monkeypatch.setattr(client, "_ask", AsyncMock(return_value=Answer(response)))
     old = Recognition(tags=["白肤色", "偏白肤色"], summary="")
     new = Recognition.model_validate(
         {
-            "tags": ["白肤色"],
+            "tags": ["白肤色", "视频时长12.5秒"],
             "summary": "",
             "appearances": [
                 {"frame_index": 0, "age_group": "25-34岁", "evidence": "清楚的正脸"},

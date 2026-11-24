@@ -12,6 +12,7 @@ def test_failed_task_backs_off_then_stops():
     task.start(NOW, timedelta(minutes=1))
     task.fail("boom", NOW, retry)
     assert (task.status, task.run_after) == (TaskStatus.READY, NOW + timedelta(seconds=10))
+    assert task.retry_generation == 0
     task.start(NOW, timedelta(minutes=1))
     task.fail("boom", NOW, retry)
     assert task.status == TaskStatus.FAILED
@@ -24,3 +25,4 @@ def test_review_and_retry():
     assert task.status == TaskStatus.NEEDS_REVIEW
     task.retry(NOW)
     assert (task.status, task.attempts, task.error) == (TaskStatus.READY, 0, None)
+    assert task.retry_generation == 1

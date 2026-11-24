@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_analysis.core.common.clock import utcnow
 from video_analysis.modules.analysis.job.models import Job, JobStatus
 from video_analysis.modules.analysis.job.repository import JobRepository
-from video_analysis.modules.scheduling.task.models import Task, TaskKind, TaskStatus
+from video_analysis.modules.scheduling.task.attempts import AttemptRepository
+from video_analysis.modules.scheduling.task.models import AttemptStatus, Task, TaskKind, TaskStatus
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 
 RETRYABLE = (TaskStatus.FAILED, TaskStatus.NEEDS_REVIEW)
@@ -19,6 +20,7 @@ class TaskService:
     def __init__(self, session: AsyncSession) -> None:
         self._jobs = JobRepository(session)
         self._tasks = TaskRepository(session)
+        self._attempts = AttemptRepository(session)
 
     async def retry_job(self, job_id: str) -> Job:
         job = await self._jobs.require_external(job_id)
@@ -48,13 +50,15 @@ class TaskService:
         stuck = [task for task in tasks if task.status in RETRYABLE]
         if not stuck:
             return False
+        now = utcnow()
         if job.artifacts_discarded:
+            await self._attempts.abandon(tasks, AttemptStatus.SUPERSEDED, now)
             for task in tasks:
                 await self._tasks.delete(task)
             job.prepare_again()
-            self._tasks.add(Task(TaskKind.FETCH, job.id))
+            retry_generation = max(task.retry_generation for task in tasks) + 1
+            self._tasks.add(Task(TaskKind.FETCH, job.id, retry_generation=retry_generation))
         else:
-            now = utcnow()
             for task in stuck:
                 task.retry(now)
         job.reopen()
@@ -66,7 +70,9 @@ class TaskService:
         await self._jobs.require(Job, job.id, lock=True)
         if job.status in SETTLED:
             return False
+        now = utcnow()
+        await self._attempts.abandon(tasks, AttemptStatus.CANCELLED, now)
         for task in tasks:
             await self._tasks.delete(task)
-        job.cancel(utcnow())
+        job.cancel(now)
         return True

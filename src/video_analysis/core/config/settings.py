@@ -1,7 +1,8 @@
 import socket
 from pathlib import Path
+from uuid import UUID, uuid4
 
-from pydantic import Field, SecretStr
+from pydantic import Field, PrivateAttr, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -36,7 +37,18 @@ class ServiceSettings(Settings):
 
 
 class WorkerSettings(ServiceSettings):
+    model_config = SettingsConfigDict(validate_by_name=True)
+
+    worker_id: str = Field(
+        default_factory=socket.gethostname,
+        validation_alias="VIDEO_ANALYSIS_WORKER_ID",
+        min_length=1,
+        max_length=128,
+    )
+    _worker_session_id: UUID = PrivateAttr(default_factory=uuid4)
+
     artifact_retention_hours: float = 72
+    artifact_cleanup_enabled: bool = True
     """任务结束后，抽帧图片和音频段保留的时长。"""
     download_slots: int = 4
     media_slots: int = 4
@@ -52,6 +64,10 @@ class WorkerSettings(ServiceSettings):
     poll_interval_seconds: float = 1
     max_attempts: int = 3
     retry_delay_seconds: float = 30
+
+    @property
+    def worker_session_id(self) -> UUID:
+        return self._worker_session_id
 
 
 class ApiSettings(ServiceSettings):

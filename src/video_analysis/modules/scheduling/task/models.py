@@ -33,6 +33,22 @@ class TaskStatus(StrEnum):
     NEEDS_REVIEW = "needs_review"
 
 
+class AttemptStatus(StrEnum):
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    RETRYING = "retrying"
+    FAILED = "failed"
+    NEEDS_REVIEW = "needs_review"
+    CANCELLED = "cancelled"
+    SUPERSEDED = "superseded"
+
+
+@dataclass(frozen=True)
+class WorkerIdentity:
+    worker_id: str
+    worker_session_id: UUID
+
+
 @dataclass(frozen=True)
 class RetryPolicy:
     max_attempts: int = 3
@@ -62,6 +78,8 @@ class Task:
     error: str | None = None
     created_at: datetime = field(default_factory=utcnow)
     finished_at: datetime | None = None
+    retry_generation: int = 0
+    """人工补跑重置尝试次数时递增，后续新建的阶段继承代次。"""
 
     def start(self, now: datetime, lease: timedelta) -> None:
         self.status = TaskStatus.RUNNING
@@ -97,6 +115,7 @@ class Task:
     def retry(self, now: datetime) -> None:
         self.status = TaskStatus.READY
         self.attempts = 0
+        self.retry_generation += 1
         self.run_after = now
         self.error = None
         self.finished_at = None

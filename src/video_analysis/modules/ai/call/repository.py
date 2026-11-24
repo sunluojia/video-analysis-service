@@ -18,7 +18,7 @@ TIME_ZONE = "Asia/Shanghai"
 
 
 class CallRepository(Repository):
-    async def start(self, task: Task, profile: AiProfile) -> None:
+    async def start(self, task: Task, profile: AiProfile, *, worker_id: str) -> None:
         """领取时登记调用，在途请求即刻占用模型额度。调用记录以本次租约为标识，租约到期即调用期限。"""
         await self._session.execute(
             insert(ai_calls).values(
@@ -29,6 +29,7 @@ class CallRepository(Repository):
                 model_id=profile.model_id,
                 model=profile.label,
                 prompt_id=profile.prompt_id,
+                worker_id=worker_id,
                 started_at=task.started_at,
                 deadline=task.lease_expires_at,
             )
