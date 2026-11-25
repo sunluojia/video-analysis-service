@@ -126,8 +126,40 @@ class SkinTone(StrEnum):
 
 
 _AGE = re.compile(r"\d+(?:-\d+)?岁(?:\+|左右|以上|以下|及以上|及以下)?")
-_UNSURE = ("无法", "未知", "不确定")
-"""“无法判断肤色”这类没下结论的值不当标签。"""
+_TOPIC_PREFIXES = ("#", "＃")
+_BODY_ONLY = "仅肢体出镜"
+_FACE = "人脸出镜"
+_SCREEN_TAGS = {_BODY_ONLY, _FACE, "无人出镜", "多人出镜"}
+_SCREEN_COUNT = re.compile(r"[1-9][0-9]*人出镜")
+_TAG_ALIASES = {
+    "肢体出镜": _BODY_ONLY,
+    "男性呈现": "男性",
+    "女性呈现": "女性",
+    "中性呈现": "中性",
+}
+_NEGATIVE_PREFIXES = (
+    "无",
+    "没有",
+    "未见",
+    "采样未",
+    "未观察到",
+    "未发现",
+    "没看到",
+    "看不清",
+    "不确定",
+    "不明确",
+    "未知",
+    "不详",
+    "不适用",
+    "未能判断",
+    "难以判断",
+    "证据不足",
+    "疑似",
+    "可能",
+    "待确认",
+)
+_BUSINESS_ABSENCE_TAGS = {"无人出镜", "无口播"}
+_GENERIC_SCENE = re.compile(r"其[他它](?:室[内外]|户外)?")
 DURATION_PREFIX = "视频时长"
 """不统计时长：模型给出的时长标签一律丢掉。"""
 
@@ -186,8 +218,7 @@ class Recognition(BaseModel):
 
     def appearance_tags(self) -> list[str]:
         """画面里看到的年龄段和肤色；早期结果直接写在标签里，一并认出来。"""
-        values = [tag for tag in self.tags if _is_appearance(tag)]
-        values += [
+        values = self.tags + [
             value
             for observation in self.appearances
             for value in (observation.age_group, observation.skin_tone)
@@ -195,7 +226,7 @@ class Recognition(BaseModel):
         ]
         return list(
             dict.fromkeys(
-                value for value in values if _is_appearance(value) and not value.startswith(_UNSURE)
+                tag for value in values if (tag := _normalize_tag(value)) and _is_appearance(tag)
             )
         )
 
@@ -203,45 +234,67 @@ class Recognition(BaseModel):
         """使用独立听音结论，作者话题放在最后。"""
         tags = []
         topics = []
-        for tag in self.tags:
-            if tag.startswith(("#", "＃")):
+        for value in self.tags:
+            if not (tag := _normalize_tag(value)):
+                continue
+            if tag.startswith(_TOPIC_PREFIXES):
                 topics.append(tag)
             elif (
                 tag not in _SOUND_LABELS.values()
                 and not _size_label(tag)
-                and not tag.lstrip().startswith(DURATION_PREFIX)
                 and not _is_appearance(tag)  # 年龄段和肤色统一由 appearance_tags 给出
             ):
                 tags.append(tag)
         tags.extend(self.appearance_tags())
         for product in self.products:
-            if name := product.name.strip():
+            if name := _normalize_tag(product.name):
                 tags.append(name)
                 for size in product.sizes:
                     if label := _size_label(size.value):
                         tags.append(f"{name}{label}")
+        if _FACE in tags:
+            tags = [tag for tag in tags if tag != _BODY_ONLY]
         for sound, label in _SOUND_LABELS.items():
             if sound in listening.sounds:
                 tags.append(label)
                 break
-        return list(dict.fromkeys([*tags, *topics, *self.published_topic_tags()]))
+        topics.extend(
+            tag for value in self.published_topic_tags() if (tag := _normalize_tag(value))
+        )
+        return list(dict.fromkeys([*tags, *topics]))
 
 
 class CreatorTags(BaseModel):
     tags: list[str] = Field(description="对各视频标签语义去重后的创作者标签")
 
     def with_observed_tags(self, videos: Sequence[Recognition]) -> "CreatorTags":
-        """年龄段和肤色只留视频里看到的，补上汇总漏掉的；去掉时长标签，重复的只留一个。"""
-        observed = [tag for video in videos for tag in video.appearance_tags()]
+        """清洗汇总结果，并补齐各视频实际观察到的年龄段和肤色。"""
+        observed = dict.fromkeys(tag for video in videos for tag in video.appearance_tags())
         tags = [
             tag
-            for tag in self.tags
-            if not tag.lstrip().startswith(DURATION_PREFIX)
-            and (not _is_appearance(tag) or tag in observed)
+            for value in self.tags
+            if (tag := _normalize_tag(value)) and (not _is_appearance(tag) or tag in observed)
         ]
         return self.model_copy(update={"tags": list(dict.fromkeys([*tags, *observed]))})
 
 
+def _normalize_tag(value: str) -> str | None:
+    """规范历史标签写法，并移除否定、无结论、泛场景和白名单外的出镜标签。"""
+    value = value.strip()
+    prefix = value[:1] if value.startswith(_TOPIC_PREFIXES) else ""
+    tag = value[len(prefix) :].strip()
+    tag = _TAG_ALIASES.get(tag, tag)
+    if not tag or tag.startswith(DURATION_PREFIX) or _GENERIC_SCENE.fullmatch(tag):
+        return None
+    if tag.startswith(_NEGATIVE_PREFIXES) and tag not in _BUSINESS_ABSENCE_TAGS:
+        return None
+    if tag.endswith("出镜") and tag not in _SCREEN_TAGS and not _SCREEN_COUNT.fullmatch(tag):
+        return None
+    return prefix + tag
+
+
 def _is_appearance(tag: str) -> bool:
     """像年龄段（如“25-34岁”“30岁左右”）或肤色（以“肤色”结尾）的标签。"""
-    return bool(_AGE.fullmatch(tag)) or tag.endswith("肤色")
+    return not tag.startswith(_TOPIC_PREFIXES) and (
+        bool(_AGE.fullmatch(tag)) or tag.endswith("肤色")
+    )

@@ -58,6 +58,28 @@ async def test_summary_receives_product_evidence_and_separate_published_topics(m
     assert video.tags == ["卫衣", "产品展示", "#卫衣"]
 
 
+async def test_summary_receives_identity_from_recognition_tags_and_published_topics(monkeypatch):
+    video = Recognition.model_validate(
+        {
+            "tags": ["#宝妈", "#拉丁裔", "#推荐"],
+            "summary": "",
+            "topic_translations": [
+                {"topic": "#latina", "translation": "拉丁裔"},
+                {"topic": "#fyp", "translation": "推荐"},
+            ],
+        }
+    )
+    ask = AsyncMock(return_value=Answer(CreatorTags(tags=["拉丁裔", "#宝妈"])))
+    client = LangChainAi()
+    monkeypatch.setattr(client, "_ask", ask)
+
+    result = (await client.summarize(sentinel.profile, [video])).value
+
+    [payload] = json.loads(ask.call_args.args[2]["text"])
+    assert payload == {**video.model_dump(mode="json"), "tags": ["#宝妈"]}
+    assert result.tags == ["拉丁裔", "#宝妈"]
+
+
 async def test_recognition_keeps_only_appearance_observations_with_a_frame(tmp_path, monkeypatch):
     frame = tmp_path / "frame.jpg"
     frame.write_bytes(b"frame")

@@ -201,3 +201,138 @@ def test_duration_is_not_a_tag(prefix):
     assert recognition.display_tags(Listening(sounds=[])) == ["生活记录", "#美食"]
     summary = CreatorTags(tags=["生活记录", f"{prefix}视频时长8–31秒"])
     assert summary.with_observed_tags([recognition]).tags == ["生活记录"]
+
+
+@pytest.mark.parametrize(
+    "invalid_tag",
+    [
+        "无明显美甲",
+        "没有美甲",
+        "没有滤镜",
+        "无人脸出镜",
+        "无明显妆容",
+        "无妆容",
+        "无宠物",
+        "无小孩",
+        "采样未见宠物",
+        "采样未见小孩",
+        "未见健身",
+        "不确定是儿童",
+        "无法判断肤色",
+        " 未知妆容 ",
+        "疑似宠物",
+        "#没有美甲",
+    ],
+)
+def test_negative_and_uncertain_tags_are_removed_even_without_a_conflict(invalid_tag):
+    video = Recognition(tags=[invalid_tag, "无人出镜"], summary="")
+    assert video.display_tags(Listening(sounds=[Sound.AMBIENT])) == ["无人出镜", "无口播"]
+    assert CreatorTags(tags=[invalid_tag, "无人出镜", "无口播"]).with_observed_tags(
+        [video]
+    ).tags == ["无人出镜", "无口播"]
+
+
+@pytest.mark.parametrize(
+    ("tags", "expected"),
+    [
+        (["肢体出镜", "1人出镜"], ["仅肢体出镜", "1人出镜"]),
+        (["仅肢体出镜", "人脸出镜", "肢体出镜"], ["人脸出镜"]),
+        (["人脸出镜", "仅肢体出镜", "2人出镜"], ["人脸出镜", "2人出镜"]),
+    ],
+)
+def test_video_prefers_face_over_body_only(tags, expected):
+    assert Recognition(tags=tags, summary="").display_tags(Listening(sounds=[])) == expected
+
+
+def test_summary_keeps_both_face_and_body_and_drops_negative_sides_of_conflicts():
+    videos = [
+        Recognition(tags=["肢体出镜", "无明显美甲", "无宠物"], summary=""),
+        Recognition(tags=["人脸出镜", "有美甲", "有宠物"], summary=""),
+    ]
+    summary = CreatorTags(
+        tags=[
+            "肢体出镜",
+            "仅肢体出镜",
+            "人脸出镜",
+            "有美甲",
+            "无明显美甲",
+            "没有美甲",
+            "没有宠物",
+            "有宠物",
+            "无宠物",
+        ]
+    )
+
+    assert summary.with_observed_tags(videos).tags == ["仅肢体出镜", "人脸出镜", "有美甲", "有宠物"]
+
+
+def test_pet_and_child_observations_use_allowed_tags_without_requiring_a_face():
+    observations = [
+        "仅肢体出镜",
+        "2人出镜",
+        "有小孩",
+        "1个小孩",
+        "有宠物",
+        "金毛寻回犬外观",
+        "1只宠物",
+    ]
+    video = Recognition(
+        tags=[*observations, "婴幼儿出镜", "儿童出镜", "动物出镜", "宠物出镜", "上半身出镜"],
+        summary="成人怀中的婴儿脸部被遮住，能看清身体。",
+    )
+
+    assert video.display_tags(Listening(sounds=[])) == observations
+    assert CreatorTags(tags=video.tags).with_observed_tags([video]).tags == observations
+
+
+def test_child_age_categories_and_allowed_people_counts_remain_distinct():
+    ages = ["婴幼儿", "幼儿", "儿童", "青少年"]
+    counts = ["1人出镜", "2人出镜", "12人出镜", "多人出镜"]
+    video = Recognition(tags=["有小孩", *ages, "多人出镜"], summary="")
+    summary = CreatorTags(tags=["有小孩", *ages, *counts, "0人出镜", "双人出镜"])
+
+    assert video.display_tags(Listening(sounds=[])) == ["有小孩", *ages, "多人出镜"]
+    assert summary.with_observed_tags([video]).tags == ["有小孩", *ages, *counts]
+
+
+def test_gender_aliases_merge_without_changing_skin_tone_or_related_content():
+    video = Recognition(
+        tags=["女性呈现", "男性呈现", "中性呈现", "女性", "中性肤色", "中性穿搭"], summary=""
+    )
+    expected = ["女性", "男性", "中性", "中性穿搭", "中性肤色"]
+
+    assert video.display_tags(Listening(sounds=[])) == expected
+    assert (
+        CreatorTags(tags=["女性呈现", "男性呈现", "中性呈现", "中性穿搭"])
+        .with_observed_tags([video])
+        .tags
+        == expected
+    )
+
+
+@pytest.mark.parametrize("prefix", ["其它", "其他"])
+def test_generic_scene_labels_drop_and_specific_scenes_remain(prefix):
+    tags = [prefix, f"{prefix}室内", f"{prefix}室外", f"{prefix}户外", "自然户外", "客厅"]
+    video = Recognition(tags=tags, summary="")
+
+    assert video.display_tags(Listening(sounds=[])) == ["自然户外", "客厅"]
+    assert CreatorTags(tags=tags).with_observed_tags([video]).tags == ["自然户外", "客厅"]
+
+
+@pytest.mark.parametrize("identity", ["拉丁裔", "#拉丁裔", "＃拉丁裔", "#宝妈"])
+def test_summary_preserves_identity_from_the_model_without_appending_published_topics(identity):
+    video = Recognition(
+        tags=["#热门", "#亚裔", "#好物分享"],
+        summary="",
+        topic_translations=[
+            TopicTranslation(topic="#latina", translation="拉丁裔"),
+            TopicTranslation(topic="#fyp", translation="推荐"),
+            TopicTranslation(topic="#TikTokShop", translation="TikTok商店"),
+        ],
+    )
+
+    assert "#拉丁裔" in video.display_tags(Listening(sounds=[]))
+    assert CreatorTags(tags=["生活记录", identity, identity]).with_observed_tags([video]).tags == [
+        "生活记录",
+        identity,
+    ]
