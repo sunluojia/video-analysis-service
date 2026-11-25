@@ -14,6 +14,14 @@ def test_worker_id_defaults_to_the_hostname(monkeypatch):
     assert settings.worker_id == socket.gethostname()
 
 
+def test_worker_defaults_to_six_frames(monkeypatch):
+    monkeypatch.delenv("VA_FRAME_COUNT", raising=False)
+
+    settings = WorkerSettings(service_token=SERVICE_TOKEN, _env_file=None)
+
+    assert settings.frame_count == 6
+
+
 def test_worker_identity_keeps_the_configured_id_and_generates_a_session_per_start(monkeypatch):
     supplied_session = uuid4()
     monkeypatch.setenv("VIDEO_ANALYSIS_WORKER_ID", "analysis-worker-a")

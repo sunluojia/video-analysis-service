@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from tests.factories import SERVICE_TOKEN
+from video_analysis.core.config.settings import WorkerSettings
 from video_analysis.integrations.media import ffmpeg
 from video_analysis.integrations.media.ffmpeg import FfmpegMedia, missing_tools
 
@@ -23,8 +25,10 @@ def make_video(path: Path, audio: str) -> Path:
 
 
 @pytest.fixture
-def media() -> FfmpegMedia:
-    return FfmpegMedia(frame_count=4, segment_seconds=2)
+def media(monkeypatch) -> FfmpegMedia:
+    monkeypatch.delenv("VA_FRAME_COUNT", raising=False)
+    settings = WorkerSettings(service_token=SERVICE_TOKEN, _env_file=None)
+    return FfmpegMedia(frame_count=settings.frame_count, segment_seconds=2)
 
 
 def empty_dir(path: Path) -> Path:
@@ -43,8 +47,8 @@ async def test_prepares_frames_and_audio_segments(media, tmp_path, monkeypatch):
     run = AsyncMock(wraps=ffmpeg._run)
     monkeypatch.setattr(ffmpeg, "_run", run)
     frames = empty_dir(tmp_path / "frames")
-    assert await media.extract_frames(source, frames) == 4
-    assert (frames / "000.jpg").exists()
+    assert await media.extract_frames(source, frames) == 6
+    assert sorted(path.name for path in frames.iterdir()) == [f"{i:03d}.jpg" for i in range(6)]
     assert [call.args[0] for call in run.await_args_list] == ["ffprobe", "ffmpeg"]
 
     audio = empty_dir(tmp_path / "audio")
@@ -165,13 +169,13 @@ async def test_extracts_valid_jpegs_from_h264_with_reserved_color_metadata(
     monkeypatch.setattr(ffmpeg, "_run", record_failure)
     frames = empty_dir(tmp_path / "frames")
 
-    assert await media.extract_frames(source, frames) == 4
-    assert sorted(path.name for path in frames.iterdir()) == [f"{i:03d}.jpg" for i in range(4)]
+    assert await media.extract_frames(source, frames) == 6
+    assert sorted(path.name for path in frames.iterdir()) == [f"{i:03d}.jpg" for i in range(6)]
     decoded = subprocess.check_output(
         ["ffprobe", "-v", "error", "-f", "image2", "-count_frames", "-show_entries",
          "stream=codec_name,nb_read_frames", "-of", "json", "-i", str(frames / "%03d.jpg")],
     )  # fmt: skip
-    assert json.loads(decoded)["streams"] == [{"codec_name": "mjpeg", "nb_read_frames": "4"}]
+    assert json.loads(decoded)["streams"] == [{"codec_name": "mjpeg", "nb_read_frames": "6"}]
     if not failures:
         pytest.skip("本机 FFmpeg 原生接受保留色彩矩阵，无法触发回退")
     [first_failure] = failures

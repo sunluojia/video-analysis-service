@@ -58,7 +58,7 @@ class WorkerSettings(ServiceSettings):
     """处理中视频数的上限，只用来保护磁盘。"""
     min_free_disk_gb: float = 10
     media_timeout_seconds: float = 300
-    frame_count: int = 8
+    frame_count: int = 6
     audio_segment_seconds: int = 60
     thread_pool_size: int = 4
     poll_interval_seconds: float = 1

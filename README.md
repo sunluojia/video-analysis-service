@@ -23,7 +23,7 @@ cp .env.example .env
 alembic upgrade head
 ```
 
-在 `.env` 中设置 `VA_SERVICE_TOKEN`（至少 16 位，与调度中心一致，API 和 Worker 启动时需要）、`VA_SCHEDULER_URL` 和 `VA_PUBLIC_URL`。
+在 `.env` 中设置 `VA_SERVICE_TOKEN`（至少 16 位，与调度中心一致，API 和 Worker 启动时需要）、`VA_SCHEDULER_URL` 和 `VA_PUBLIC_URL`。Worker 默认每个视频抽取 6 帧，可通过 `VA_FRAME_COUNT` 调整。
 
 代码按“业务域／模块”组织，例如 `modules/analysis/job/`、`modules/ai/prompt/`，模块内按 `models`、`tables`、`repository`、`service`、`schemas`、`router` 分文件；公共基础在 `core/`，外部系统接入在 `integrations/`。完整结构见设计文档第 6 节。
 
