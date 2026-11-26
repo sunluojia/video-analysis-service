@@ -15,11 +15,12 @@ needs_ffmpeg = pytest.mark.skipif(bool(missing_tools()), reason="需要安装 FF
 VIDEO_PROBE = json.dumps({"streams": [{"codec_type": "video"}], "format": {"duration": 4}})
 
 
-def make_video(path: Path, audio: str) -> Path:
-    """5 秒测试画面，audio 为 lavfi 音频滤镜图。"""
+def make_video(path: Path, audio: str, *, duration: float = 5) -> Path:
+    """生成带指定 lavfi 音轨的测试视频。"""
+    video = f"testsrc=duration={duration}:size=160x120:rate=10"
     subprocess.run(
-        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "testsrc=duration=5:size=320x240:rate=10",
-         "-f", "lavfi", "-i", audio, "-shortest", "-f", "mp4", str(path)],
+        ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", video,
+         "-f", "lavfi", "-i", audio, "-f", "mp4", str(path)],
         check=True,
     )  # fmt: skip
     return path
@@ -54,8 +55,8 @@ async def test_prepares_frames_and_audio_segments(media, tmp_path, monkeypatch):
 
     audio = empty_dir(tmp_path / "audio")
     segments = await media.extract_audio(source, audio)
-    assert segments == 3
-    assert sorted(path.name for path in audio.iterdir()) == [f"{i:03d}.mp3" for i in range(3)]
+    assert segments == 2
+    assert sorted(path.name for path in audio.iterdir()) == [f"{i:03d}.mp3" for i in range(2)]
 
 
 @pytest.mark.parametrize(
@@ -189,7 +190,7 @@ async def test_extracts_valid_jpegs_from_h264_with_reserved_color_metadata(
     [
         ("anullsrc=r=16000:cl=mono:duration=5", 0),
         ("anoisesrc=amplitude=0.00031623:duration=5:seed=42", 0),  # 峰值约 -70 dBFS
-        ("sine=frequency=440:duration=5,volume=-12dB", 3),  # 峰值约 -30 dBFS
+        ("sine=frequency=440:duration=5,volume=-12dB", 2),  # 峰值约 -30 dBFS
     ],
     ids=["silence", "near_silence", "quiet_audio"],
 )
@@ -203,13 +204,39 @@ async def test_audio_volume_thresholds(media, tmp_path, audio_filter, count):
 
 
 @needs_ffmpeg
-async def test_drops_tail_shorter_than_half_a_second(media, tmp_path, caplog):
-    source = make_video(tmp_path / "source", "sine=frequency=440:duration=2.2")
+@pytest.mark.parametrize(
+    ("duration", "count"), [(1.5, 0), (1.9, 0), (1.999, 0), (2.0, 1), (2.1, 1)]
+)
+async def test_single_segment_duration_limit(media, tmp_path, duration, count):
+    media.segment_seconds = 60
+    source = make_video(tmp_path / "source", f"sine=duration={duration}", duration=duration)
     audio = empty_dir(tmp_path / "audio")
 
-    assert await media.extract_audio(source, audio) == 1
-    assert list(audio.iterdir()) == [audio / "000.mp3"]
-    assert "解码后音频不足 0.5 秒" in caplog.text
+    assert await media.extract_audio(source, audio) == count
+    assert list(audio.iterdir()) == [audio / "000.mp3"] * count
+    assert await media.extract_frames(source, empty_dir(tmp_path / "frames")) == 6
+
+
+@needs_ffmpeg
+async def test_short_audio_is_dropped_in_a_longer_video(media, tmp_path):
+    source = make_video(tmp_path / "source", "sine=duration=1.999")
+    audio = empty_dir(tmp_path / "audio")
+
+    assert (await media.probe(source)).duration == 5
+    assert await media.extract_audio(source, audio) == 0
+    assert list(audio.iterdir()) == []
+
+
+@needs_ffmpeg
+@pytest.mark.parametrize(("duration", "count"), [(60.208, 1), (61.9, 1), (61.999, 1), (62.0, 2)])
+async def test_tail_segment_duration_limit(media, tmp_path, caplog, duration, count):
+    media.segment_seconds = 60
+    source = make_video(tmp_path / "source", f"sine=duration={duration}", duration=duration)
+    audio = empty_dir(tmp_path / "audio")
+
+    assert await media.extract_audio(source, audio) == count
+    assert sorted(path.name for path in audio.iterdir()) == [f"{i:03d}.mp3" for i in range(count)]
+    assert ("001.mp3）：音频不足 2.0 秒" in caplog.text) == (count == 1)
 
 
 @needs_ffmpeg
@@ -217,17 +244,17 @@ async def test_drops_tail_shorter_than_half_a_second(media, tmp_path, caplog):
 async def test_keeps_numbering_contiguous_after_discarding_a_middle_segment(
     media, tmp_path, monkeypatch, caplog, damage
 ):
-    audio_filter = "sine=frequency=440:duration=5"
+    audio_filter = "sine=frequency=440:duration=6"
     if damage == "silent":
         audio_filter += ",volume=0:enable='between(t,1.9,4.1)'"
-    source = make_video(tmp_path / "source", audio_filter)
+    source = make_video(tmp_path / "source", audio_filter, duration=6)
     audio = empty_dir(tmp_path / "audio")
     for index in (0, 1, 2, 9):
         (audio / f"{index:03d}.mp3").write_bytes(b"stale")
     originals = []
     run = ffmpeg._run
 
-    async def damage_after_cut(*args):
+    async def damage_after_encoding(*args):
         if (
             damage == "no_samples"
             and "volumedetect" in args
@@ -235,27 +262,26 @@ async def test_keeps_numbering_contiguous_after_discarding_a_middle_segment(
         ):
             return "", "n_samples: 0\nmax_volume: -20.0 dB"
         result = await run(*args)
-        if "-segment_time" in args:
-            scratch = Path(args[-1]).parent
-            originals.extend((scratch / name).read_bytes() for name in ("000.mp3", "002.mp3"))
-            middle = scratch / "001.mp3"
-            if damage == "tiny":
-                middle.write_bytes(b"ID3")
+        if "-b:a" in args:
+            segment = Path(args[-1])
+            if segment.name != "001.mp3":
+                originals.append(segment.read_bytes())
+            elif damage == "tiny":
+                segment.write_bytes(b"ID3")
             elif damage == "corrupt":
-                middle.write_bytes(b"not an MP3" * 200)
+                segment.write_bytes(b"not an MP3" * 200)
             elif damage == "missing":
-                middle.unlink()
+                segment.unlink()
         return result
 
-    monkeypatch.setattr(ffmpeg, "_run", damage_after_cut)
+    monkeypatch.setattr(ffmpeg, "_run", damage_after_encoding)
 
     assert await media.extract_audio(source, audio) == 2
     published = sorted(audio.glob("*.mp3"))
     assert [path.name for path in published] == ["000.mp3", "001.mp3"]
     assert [path.read_bytes() for path in published] == originals
     assert Workspace.segment_indices(audio, 2) == [0, 2]
-    if damage != "missing":
-        assert "001.mp3" in caplog.text
+    assert "001.mp3" in caplog.text
 
 
 @needs_ffmpeg
@@ -306,9 +332,9 @@ async def test_low_average_volume_only_discards_segments_with_quiet_peaks(
     segment.write_bytes(b"\x00" * 1024)
     probe = {
         "streams": [{"codec_name": "mp3", "sample_rate": "16000"}],
-        "frames": [{"nb_samples": 576}] * 14,
+        "frames": [{"nb_samples": 576}] * 55 + [{"nb_samples": 320}],
     }
-    stats = f"n_samples: 8064\nmean_volume: -67.0 dB\nmax_volume: {peak} dB"
+    stats = f"n_samples: 32000\nmean_volume: -67.0 dB\nmax_volume: {peak} dB"
     run = AsyncMock(side_effect=[(json.dumps(probe), ""), ("", stats)])
     monkeypatch.setattr(ffmpeg, "_run", run)
 

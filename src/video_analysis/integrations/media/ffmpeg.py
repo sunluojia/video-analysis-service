@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import shutil
+from fractions import Fraction
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -12,11 +13,14 @@ from video_analysis.core.storage.workspace import AUDIO_SEGMENT_INDICES
 from video_analysis.modules.analysis.job.models import MediaInfo
 
 log = logging.getLogger(__name__)
+_AUDIO_MAPPING = re.compile(r"^\s*Stream #0:(\d+) -> #0:0\b", re.MULTILINE)
 _SAMPLE_COUNT = re.compile(r"\bn_samples: (\d+)\b")
 _PEAK_VOLUME = re.compile(r"\bmax_volume: (-?\d+(?:\.\d+)?) dB")
 _MEAN_VOLUME = re.compile(r"\bmean_volume: (-?\d+(?:\.\d+)?) dB")
 _MIN_SEGMENT_BYTES = 1024
-_MIN_SEGMENT_SECONDS = 0.5
+_MIN_SEGMENT_SECONDS = 2.0
+_AUDIO_SAMPLE_RATE = 16_000
+_PCM_BYTES_PER_SAMPLE = 2
 _SILENT_PEAK_DB = -55.0
 _SILENT_MEAN_DB = -65.0
 _LOW_MEAN_PEAK_LIMIT_DB = -45.0
@@ -118,7 +122,7 @@ class FfmpegMedia:
         return len(frames)
 
     async def extract_audio(self, source: Path, target: Path) -> int:
-        """筛选可听的单声道 MP3 片段，按原顺序连续编号。"""
+        """筛选至少 2 秒的可听单声道 MP3 片段，按原顺序连续编号。"""
         with TemporaryDirectory(dir=target, prefix=".segments-") as directory:
             scratch = Path(directory)
             segments = await self._validated_audio(source, scratch)
@@ -142,21 +146,47 @@ class FfmpegMedia:
 
     async def _validated_audio(self, source: Path, scratch: Path) -> list[Path]:
         try:
-            peak, _ = await _audio_volume(source)
+            peak, _, stream = await _audio_volume(source)
+            if peak <= _SILENT_PEAK_DB:
+                log.info("音轨峰值 %.1f dBFS，跳过听音（%s）", peak, source.parent.name)
+                return []
+            limit = await _audio_sample_limit(source, stream) if stream is not None else None
         except (_ProcessError, ValueError) as error:
             log.warning("音轨预检失败，跳过听音（%s）：%s", source.parent.name, error)
             return []
-        if peak <= _SILENT_PEAK_DB:
-            log.info("音轨峰值 %.1f dBFS，跳过听音（%s）", peak, source.parent.name)
+
+        min_samples = _MIN_SEGMENT_SECONDS * _AUDIO_SAMPLE_RATE
+        if limit is not None and limit < min_samples:
+            log.info("原音轨不足 %.1f 秒，跳过听音（%s）", _MIN_SEGMENT_SECONDS, source.parent.name)
             return []
 
+        # 先按 PCM 采样切片，再独立编码 MP3，避免编解码填充改变片段的有效时长。
+        pcm = scratch / "source.pcm"
+        sample_rate = str(_AUDIO_SAMPLE_RATE)
+        mapping = ("-map", f"0:{stream}") if stream is not None else ()
         await _run(
-            "ffmpeg", "-v", "error", "-i", str(source), "-vn", "-ac", "1", "-ar", "16000",
-            "-b:a", "48k", "-f", "segment", "-segment_time", str(self.segment_seconds),
-            str(scratch / "%03d.mp3"),
+            "ffmpeg", "-v", "error", "-i", str(source), "-vn", *mapping,
+            "-ac", "1", "-ar", sample_rate, "-f", "s16le", str(pcm),
         )  # fmt: skip
+        total = pcm.stat().st_size // _PCM_BYTES_PER_SAMPLE
+        if limit is not None:
+            total = min(total, limit)
+        segment_samples = self.segment_seconds * _AUDIO_SAMPLE_RATE
         segments = []
-        for segment in sorted(scratch.glob("*.mp3"), key=lambda path: int(path.stem)):
+        for index, start in enumerate(range(0, total, segment_samples)):
+            count = min(segment_samples, total - start)
+            segment = scratch / f"{index:03d}.mp3"
+            if count < min_samples:
+                log.warning(
+                    "丢弃音频段（%s/%s）：音频不足 %.1f 秒",
+                    source.parent.name, segment.name, _MIN_SEGMENT_SECONDS,
+                )  # fmt: skip
+                break
+            await _run(
+                "ffmpeg", "-v", "error", "-f", "s16le", "-ar", sample_rate, "-ac", "1",
+                "-ss", str(index * self.segment_seconds), "-i", str(pcm),
+                "-t", str(count / _AUDIO_SAMPLE_RATE), "-b:a", "48k", str(segment),
+            )  # fmt: skip
             try:
                 issue = await _audio_segment_issue(segment)
             except (_ProcessError, ValueError, FileNotFoundError) as error:
@@ -168,7 +198,7 @@ class FfmpegMedia:
         return segments
 
 
-async def _audio_volume(source: Path) -> tuple[float, float | None]:
+async def _audio_volume(source: Path) -> tuple[float, float | None, str | None]:
     _, stats = await _run(
         "ffmpeg", "-hide_banner", "-nostats", "-v", "info", "-xerror", "-i", str(source),
         "-vn", "-af", "volumedetect", "-f", "null", "-",
@@ -177,7 +207,22 @@ async def _audio_volume(source: Path) -> tuple[float, float | None]:
     if not peaks or not any(int(count) > 0 for count in _SAMPLE_COUNT.findall(stats)):
         raise ValueError("未检测到有效的音频采样或峰值音量")
     mean = max(map(float, _MEAN_VOLUME.findall(stats)), default=None)
-    return max(map(float, peaks)), mean
+    stream = _AUDIO_MAPPING.search(stats)
+    return max(map(float, peaks)), mean, stream[1] if stream else None
+
+
+async def _audio_sample_limit(source: Path, stream: str) -> int | None:
+    """用容器声明的音轨时长去掉 AAC 等输入编码可能留下的尾部填充。"""
+    output, _ = await _run(
+        "ffprobe", "-v", "error", "-select_streams", stream,
+        "-show_entries", "stream=duration_ts,time_base", "-of", "json", str(source),
+    )  # fmt: skip
+    streams = json.loads(output).get("streams", [])
+    if not streams or "duration_ts" not in streams[0]:
+        return None
+    track = streams[0]
+    duration = int(track["duration_ts"]) * Fraction(track["time_base"])
+    return int(duration * _AUDIO_SAMPLE_RATE) if duration > 0 else None
 
 
 async def _audio_segment_issue(segment: Path) -> str | None:
@@ -199,7 +244,7 @@ async def _audio_segment_issue(segment: Path) -> str | None:
     if rate <= 0 or samples < _MIN_SEGMENT_SECONDS * rate:
         return f"解码后音频不足 {_MIN_SEGMENT_SECONDS} 秒"
 
-    peak, mean = await _audio_volume(segment)
+    peak, mean, _ = await _audio_volume(segment)
     if peak <= _SILENT_PEAK_DB:
         return f"音频近静音（峰值 {peak:.1f} dBFS）"
     # 峰值较高时保留片段，即使较长的停顿将整段平均音量拉低。

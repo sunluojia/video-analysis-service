@@ -137,7 +137,9 @@ async def test_video_without_audio_track_skips_listening(database, workspace):
 
 
 async def test_no_usable_audio_is_reported_by_the_audio_stage(database, workspace):
-    setup = Setup(database, workspace, media=FakeMedia(segments=0))
+    media = FakeMedia(segments=0)
+    media.frame_count = 6
+    setup = Setup(database, workspace, media=media)
     await configure_ai(database)
     await accept(database, video_message())
 
@@ -145,6 +147,9 @@ async def test_no_usable_audio_is_reported_by_the_audio_stage(database, workspac
 
     [audio] = await events(database, stage="extract_audio", status="succeeded")
     assert audio["result"]["skip_reason"] == "没有可听的音频片段"
+    [visual] = await events(database, stage="extract_frames", status="succeeded")
+    assert len(visual["result"]["frames"]) == 6
+    assert not await events(database, stage="listen")
     assert len(setup.ai.prompts) == 1
 
 
