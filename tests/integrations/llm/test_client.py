@@ -7,13 +7,18 @@ from uuid import uuid4
 import httpx
 import pytest
 from langchain_openai import ChatOpenAI
-from openai import RateLimitError
+from openai import InternalServerError, RateLimitError
 
 from video_analysis.integrations.llm import langchain_client
 from video_analysis.integrations.llm.langchain_client import LangChainAi
 from video_analysis.modules.ai.call.models import BAILIAN_EXPLICIT_CACHE, AiProfile, Usage
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition
-from video_analysis.modules.scheduling.execution.ports import Answer, Rejected, VideoMaterial
+from video_analysis.modules.scheduling.execution.ports import (
+    Answer,
+    InvalidAudio,
+    Rejected,
+    VideoMaterial,
+)
 
 
 def listen_profile(base_url: str) -> AiProfile:
@@ -274,13 +279,26 @@ async def test_bailian_uses_a_stable_prefix_and_reports_stream_usage(
     assert f"prompt_version=3 mode={mode} prompt_tokens=3200 cached_tokens=2048" in caplog.text
 
 
-@pytest.mark.parametrize(("status", "error"), [(400, Rejected), (429, RateLimitError)])
-async def test_only_requests_the_model_refuses_are_rejected(tmp_path, monkeypatch, status, error):
-    """内容审核、空音频这类 4xx 重发结果相同；限流可以稍后重发。"""
+@pytest.mark.parametrize(
+    ("status", "code", "message", "error_type"),
+    [
+        (400, "invalid_request_error", "The audio is empty", InvalidAudio),
+        (400, "invalid_request_error", "The audio format is illegal", InvalidAudio),
+        (400, "DataInspectionFailed", "The audio is empty", Rejected),
+        (400, "invalid_request_error", "Inappropriate content. The audio is empty", Rejected),
+        (400, "invalid_request_error", "An unrelated bad request", Rejected),
+        (401, "authentication_error", "The audio is empty", Rejected),
+        (429, "rate_limit_error", "The audio is empty", RateLimitError),
+        (503, "server_error", "The audio is empty", InternalServerError),
+    ],
+)
+async def test_listen_classifies_only_invalid_audio_400_as_recoverable(
+    tmp_path, monkeypatch, status, code, message, error_type
+):
     audio = tmp_path / "audio.mp3"
     audio.write_bytes(b"ID3")
-    profile = listen_profile("http://127.0.0.1:8095/v1")
-    body = {"error": {"message": "The audio is empty", "type": "invalid_request_error"}}
+    profile = listen_profile("https://dashscope.aliyuncs.com/compatible-mode/v1")
+    body = {"error": {"message": message, "code": code}}
     transport = httpx.MockTransport(lambda _: httpx.Response(status, json=body))
     client = LangChainAi()
     async with httpx.AsyncClient(transport=transport) as http_client:
@@ -292,5 +310,6 @@ async def test_only_requests_the_model_refuses_are_rejected(tmp_path, monkeypatc
             max_retries=0,
         )
         monkeypatch.setattr(client, "_model", lambda _: model)
-        with pytest.raises(error, match="The audio is empty"):
+        with pytest.raises(error_type, match=message) as raised:
             await client.listen(profile, audio)
+        assert isinstance(raised.value, InvalidAudio) == (error_type is InvalidAudio)

@@ -32,10 +32,16 @@ from video_analysis.modules.ai.call.models import (
     Usage,
 )
 from video_analysis.modules.analysis.job.results import CreatorTags, Listening, Recognition
-from video_analysis.modules.scheduling.execution.ports import Answer, Rejected, VideoMaterial
+from video_analysis.modules.scheduling.execution.ports import (
+    Answer,
+    InvalidAudio,
+    Rejected,
+    VideoMaterial,
+)
 
 RETRYABLE_STATUS = frozenset({408, 409, 429})
 """与 OpenAI SDK 的重试判断一致：请求超时、冲突、限流和 5xx 重发可能成功，其余 4xx 重发结果相同。"""
+_INVALID_AUDIO_MESSAGES = ("the audio is empty", "the audio format is illegal")
 log = logging.getLogger(__name__)
 
 
@@ -121,7 +127,17 @@ class LangChainAi:
             answer = await model.ainvoke(messages)
         except APIStatusError as error:
             if error.status_code < 500 and error.status_code not in RETRYABLE_STATUS:
-                raise Rejected(str(error)) from error
+                message = str(error)
+                if schema is Listening and error.status_code == 400:
+                    # SDK 的异常消息可能省略独立的审核错误码。
+                    reason = f"{error.code or ''} {error.type or ''} {message}".casefold()
+                    if (
+                        "datainspectionfailed" not in reason
+                        and "inappropriate content" not in reason
+                        and any(text in reason for text in _INVALID_AUDIO_MESSAGES)
+                    ):
+                        raise InvalidAudio(message) from error
+                raise Rejected(message) from error
             raise
         raw, usage = answer["raw"], None
         if isinstance(raw, AIMessage) and (metadata := raw.usage_metadata):

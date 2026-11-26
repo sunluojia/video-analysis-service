@@ -23,6 +23,7 @@ from video_analysis.modules.analysis.job.repository import JobRepository
 from video_analysis.modules.analysis.job.results import Listening, merge_listening
 from video_analysis.modules.analysis.upstream.service import UpstreamService
 from video_analysis.modules.scheduling.execution.ports import (
+    InvalidAudio,
     Materials,
     Media,
     Rejected,
@@ -78,8 +79,17 @@ class Pipeline:
             else:
                 output, usage = await self._ask_ai(claimed, profile)
         except Exception as error:
-            log.warning("任务 %s %s 失败：%s", claimed.kind, claimed.id, describe(error))
-            await self._failed(claimed, error, profile)
+            message = describe(error)
+            if claimed.kind == TaskKind.LISTEN and isinstance(error, InvalidAudio):
+                log.warning(
+                    "视频 %s 音频段 %s 听音降级：%s", claimed.job_id, claimed.segment, message
+                )
+                await self._succeeded(
+                    claimed, Listening(sounds=[], transcript=""), profile, None, call_error=message
+                )
+            else:
+                log.warning("任务 %s %s 失败：%s", claimed.kind, claimed.id, message)
+                await self._failed(claimed, error, profile)
         else:
             await self._succeeded(claimed, output, profile, usage)
 
@@ -98,7 +108,7 @@ class Pipeline:
                 await self._workspace.discard(job.id)
                 job.artifacts_until = None
 
-    async def _process_media(self, task: Task) -> MediaInfo | Job | int:
+    async def _process_media(self, task: Task) -> MediaInfo | Job | int | list[int]:
         job = await self._job(task.job_id)
         source = self._workspace.source(job.id)
         async with asyncio.timeout(self._media_timeout.total_seconds()):
@@ -108,7 +118,8 @@ class Pipeline:
                 target = await self._workspace.fresh(job.id, "frames")
                 return await self._media.extract_frames(source, target)
             target = await self._workspace.fresh(job.id, "audio")
-            return await self._media.extract_audio(source, target)
+            count = await self._media.extract_audio(source, target)
+            return self._workspace.segment_indices(target, count)
 
     async def _fetch(self, job: Job, source: Path) -> MediaInfo | Job:
         """有相同分析的结果时直接采用；否则下载、校验并读取媒体信息。"""
@@ -153,13 +164,21 @@ class Pipeline:
             return merge_listening(await TaskRepository(session).listen_results(job_id))
 
     async def _succeeded(
-        self, claimed: Task, output, profile: AiProfile | None, usage: Usage | None
+        self,
+        claimed: Task,
+        output,
+        profile: AiProfile | None,
+        usage: Usage | None,
+        *,
+        call_error: str | None = None,
     ) -> None:
+        """保存已完成的阶段，听音降级时调用本身记为失败。"""
         async with self._database.transaction() as session:
             now = utcnow()
             if claimed.kind.uses_ai:
+                outcome = CallOutcome.SUCCEEDED if call_error is None else CallOutcome.FAILED
                 await CallRepository(session).finish(
-                    claimed, CallOutcome.SUCCEEDED, now, usage=usage
+                    claimed, outcome, now, error=call_error, usage=usage
                 )
             task = await self._current(session, claimed)
             if task is None:
@@ -224,9 +243,9 @@ class Pipeline:
                 job.frame_count = output
                 task.succeed(now, _frames_result(job))
             case TaskKind.EXTRACT_AUDIO:
-                job.segment_count = output
-                task.succeed(now, _audio_result(job, self._media.segment_seconds))
-                for segment in range(output):
+                job.segment_count = len(output)
+                task.succeed(now, _audio_result(job, output, self._media.segment_seconds))
+                for segment in range(len(output)):
                     tasks.add(Task(TaskKind.LISTEN, job.id, segment, retry_generation=generation))
             case TaskKind.LISTEN:
                 task.succeed(now, output.model_dump(mode="json"))
@@ -353,20 +372,20 @@ def _frames_result(job: Job) -> dict:
     return {"frame_count": count, "frames": frames}
 
 
-def _audio_result(job: Job, segment_seconds: int) -> dict:
-    count, duration = job.segment_count or 0, job.duration or 0
+def _audio_result(job: Job, indices: list[int], segment_seconds: int) -> dict:
+    duration = job.duration or 0
     segments = [
         {
             "index": i,
-            "start": i * segment_seconds,
-            "end": min((i + 1) * segment_seconds, duration),
+            "start": original * segment_seconds,
+            "end": min((original + 1) * segment_seconds, duration),
             "url": _artifact_url(job, "audio", i),
         }
-        for i in range(count)
+        for i, original in enumerate(indices)
     ]
-    result: dict = {"segment_count": count, "segments": segments}
-    if not count:
-        result["skip_reason"] = "数字静音，不需要听音"
+    result: dict = {"segment_count": len(indices), "segments": segments}
+    if not indices:
+        result["skip_reason"] = "没有可听的音频片段"
     return result
 
 

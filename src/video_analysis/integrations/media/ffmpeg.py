@@ -8,12 +8,18 @@ import shutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+from video_analysis.core.storage.workspace import AUDIO_SEGMENT_INDICES
 from video_analysis.modules.analysis.job.models import MediaInfo
 
 log = logging.getLogger(__name__)
-MAX_VOLUME = re.compile(r"max_volume: (\S+) dB")
-DIGITAL_SILENCE_DB = -91.0
-"""volumedetect 对全零采样报告的下限；最小的非零采样约为 -90.3 dB。"""
+_SAMPLE_COUNT = re.compile(r"\bn_samples: (\d+)\b")
+_PEAK_VOLUME = re.compile(r"\bmax_volume: (-?\d+(?:\.\d+)?) dB")
+_MEAN_VOLUME = re.compile(r"\bmean_volume: (-?\d+(?:\.\d+)?) dB")
+_MIN_SEGMENT_BYTES = 1024
+_MIN_SEGMENT_SECONDS = 0.5
+_SILENT_PEAK_DB = -55.0
+_SILENT_MEAN_DB = -65.0
+_LOW_MEAN_PEAK_LIMIT_DB = -45.0
 
 
 _FRAME_RETRY_ERROR = re.compile(
@@ -112,23 +118,94 @@ class FfmpegMedia:
         return len(frames)
 
     async def extract_audio(self, source: Path, target: Path) -> int:
-        """切成固定时长的单声道小文件。只有确定是数字静音才跳过，低音量的讲话和音乐照常听音。
+        """筛选可听的单声道 MP3 片段，按原顺序连续编号。"""
+        with TemporaryDirectory(dir=target, prefix=".segments-") as directory:
+            scratch = Path(directory)
+            segments = await self._validated_audio(source, scratch)
+            indices = [int(segment.stem) for segment in segments]
+            published = set()
+            for index, segment in enumerate(segments):
+                name = f"{index:03d}.mp3"
+                segment.replace(target / name)
+                published.add(name)
+            for stale in target.glob("*.mp3"):
+                if stale.stem.isdecimal() and stale.name not in published:
+                    stale.unlink(missing_ok=True)
+            if indices == list(range(len(segments))):
+                (target / AUDIO_SEGMENT_INDICES).unlink(missing_ok=True)
+            else:
+                # 重编号后，阶段产物仍以原视频时间展示。
+                index_file = scratch / AUDIO_SEGMENT_INDICES
+                index_file.write_text(json.dumps(indices), encoding="utf-8")
+                index_file.replace(target / AUDIO_SEGMENT_INDICES)
+        return len(segments)
 
-        没测出音量时照常切段；音频无法解码时自然得到 0 段。
-        """
-        _, stats = await _run(
-            "ffmpeg", "-hide_banner", "-nostats", "-i", str(source),
-            "-vn", "-af", "volumedetect", "-f", "null", "-",
-        )  # fmt: skip
-        volume = MAX_VOLUME.search(stats)
-        if volume and float(volume[1]) <= DIGITAL_SILENCE_DB:
-            return 0
+    async def _validated_audio(self, source: Path, scratch: Path) -> list[Path]:
+        try:
+            peak, _ = await _audio_volume(source)
+        except (_ProcessError, ValueError) as error:
+            log.warning("音轨预检失败，跳过听音（%s）：%s", source.parent.name, error)
+            return []
+        if peak <= _SILENT_PEAK_DB:
+            log.info("音轨峰值 %.1f dBFS，跳过听音（%s）", peak, source.parent.name)
+            return []
+
         await _run(
             "ffmpeg", "-v", "error", "-i", str(source), "-vn", "-ac", "1", "-ar", "16000",
             "-b:a", "48k", "-f", "segment", "-segment_time", str(self.segment_seconds),
-            str(target / "%03d.mp3"),
+            str(scratch / "%03d.mp3"),
         )  # fmt: skip
-        return len(list(target.glob("*.mp3")))
+        segments = []
+        for segment in sorted(scratch.glob("*.mp3"), key=lambda path: int(path.stem)):
+            try:
+                issue = await _audio_segment_issue(segment)
+            except (_ProcessError, ValueError, FileNotFoundError) as error:
+                issue = str(error)
+            if issue is None:
+                segments.append(segment)
+            else:
+                log.warning("丢弃音频段（%s/%s）：%s", source.parent.name, segment.name, issue)
+        return segments
+
+
+async def _audio_volume(source: Path) -> tuple[float, float | None]:
+    _, stats = await _run(
+        "ffmpeg", "-hide_banner", "-nostats", "-v", "info", "-xerror", "-i", str(source),
+        "-vn", "-af", "volumedetect", "-f", "null", "-",
+    )  # fmt: skip
+    peaks = _PEAK_VOLUME.findall(stats)
+    if not peaks or not any(int(count) > 0 for count in _SAMPLE_COUNT.findall(stats)):
+        raise ValueError("未检测到有效的音频采样或峰值音量")
+    mean = max(map(float, _MEAN_VOLUME.findall(stats)), default=None)
+    return max(map(float, peaks)), mean
+
+
+async def _audio_segment_issue(segment: Path) -> str | None:
+    if segment.stat().st_size < _MIN_SEGMENT_BYTES:
+        return f"文件小于 {_MIN_SEGMENT_BYTES} 字节"
+    output, errors = await _run(
+        "ffprobe", "-v", "error", "-select_streams", "a:0", "-show_frames",
+        "-show_entries", "stream=codec_name,sample_rate:frame=nb_samples", "-of", "json",
+        str(segment),
+    )  # fmt: skip
+    if errors.strip():
+        return f"MP3 解码失败：{errors.strip()[-500:]}"
+    info = json.loads(output)
+    streams = info.get("streams", [])
+    if not streams or streams[0].get("codec_name") != "mp3":
+        return "没有有效的 MP3 音频流"
+    rate = int(streams[0].get("sample_rate", 0))
+    samples = sum(int(frame.get("nb_samples", 0)) for frame in info.get("frames", []))
+    if rate <= 0 or samples < _MIN_SEGMENT_SECONDS * rate:
+        return f"解码后音频不足 {_MIN_SEGMENT_SECONDS} 秒"
+
+    peak, mean = await _audio_volume(segment)
+    if peak <= _SILENT_PEAK_DB:
+        return f"音频近静音（峰值 {peak:.1f} dBFS）"
+    # 峰值较高时保留片段，即使较长的停顿将整段平均音量拉低。
+    if mean is not None and mean <= _SILENT_MEAN_DB and peak <= _LOW_MEAN_PEAK_LIMIT_DB:
+        return f"音频近静音（峰值 {peak:.1f} dBFS，平均 {mean:.1f} dBFS）"
+    return None
 
 
 async def _color_patch(source: Path, stderr: str) -> tuple[int, str] | None:

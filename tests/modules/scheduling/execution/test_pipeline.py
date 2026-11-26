@@ -1,4 +1,5 @@
 import asyncio
+import json
 from datetime import timedelta
 
 import pytest
@@ -14,11 +15,15 @@ from tests.factories import (
 )
 from tests.modules.scheduling.execution.fakes import FakeAi, FakeMedia, Setup, in_flight, wait_until
 from video_analysis.core.common.clock import utcnow
+from video_analysis.core.storage.workspace import AUDIO_SEGMENT_INDICES
+from video_analysis.modules.ai.call.models import CallOutcome
 from video_analysis.modules.ai.call.repository import CallRepository
 from video_analysis.modules.ai.prompt.service import PromptService
 from video_analysis.modules.analysis.batch.repository import BatchRepository
 from video_analysis.modules.analysis.job.models import JobStatus
 from video_analysis.modules.analysis.job.repository import JobRepository
+from video_analysis.modules.analysis.upstream.messages import SummarizeCreator
+from video_analysis.modules.scheduling.execution.ports import InvalidAudio, Rejected
 from video_analysis.modules.scheduling.task.models import RetryPolicy, Task, TaskKind, TaskStatus
 from video_analysis.modules.scheduling.task.repository import TaskRepository
 from video_analysis.modules.scheduling.task.service import TaskService
@@ -131,7 +136,7 @@ async def test_video_without_audio_track_skips_listening(database, workspace):
     assert len(setup.ai.prompts) == 1
 
 
-async def test_digital_silence_is_reported_by_the_audio_stage(database, workspace):
+async def test_no_usable_audio_is_reported_by_the_audio_stage(database, workspace):
     setup = Setup(database, workspace, media=FakeMedia(segments=0))
     await configure_ai(database)
     await accept(database, video_message())
@@ -139,8 +144,128 @@ async def test_digital_silence_is_reported_by_the_audio_stage(database, workspac
     await setup.run_until(emitted(database, **COMPLETED))
 
     [audio] = await events(database, stage="extract_audio", status="succeeded")
-    assert audio["result"]["skip_reason"] == "数字静音，不需要听音"
+    assert audio["result"]["skip_reason"] == "没有可听的音频片段"
     assert len(setup.ai.prompts) == 1
+
+
+@pytest.mark.parametrize(
+    ("message", "original_indices", "expected_transcript"),
+    [
+        ("The audio is empty", [0], ""),
+        ("The audio format is illegal and cannot be opened", [0, 2], "第001段"),
+    ],
+)
+async def test_invalid_audio_is_audited_and_video_and_creator_still_complete(
+    database, workspace, monkeypatch, caplog, message, original_indices, expected_transcript
+):
+    media = FakeMedia(segments=len(original_indices))
+    media.frame_count = 6
+    setup = Setup(database, workspace, media=media, retry=RetryPolicy(max_attempts=3))
+    extract_audio = media.extract_audio
+    listen = setup.ai.listen
+    recognize = setup.ai.recognize
+
+    async def extract_with_indices(source, target):
+        count = await extract_audio(source, target)
+        (target / AUDIO_SEGMENT_INDICES).write_text(json.dumps(original_indices), encoding="utf-8")
+        return count
+
+    async def reject_first_segment(profile, audio):
+        assert audio.is_file()
+        if audio.stem == "000":
+            raise InvalidAudio(f"Error code: 400 - {message}")
+        return await listen(profile, audio)
+
+    async def recognize_six_frames(profile, material):
+        assert [path.name for path in material.frames] == [f"{i:03d}.jpg" for i in range(6)]
+        assert material.listening.transcript == expected_transcript
+        return await recognize(profile, material)
+
+    monkeypatch.setattr(media, "extract_audio", extract_with_indices)
+    monkeypatch.setattr(setup.ai, "listen", reject_first_segment)
+    monkeypatch.setattr(setup.ai, "recognize", recognize_six_frames)
+    await configure_ai(database)
+    await accept(database, video_message())
+    await setup.run_until(emitted(database, job_id="j-1", **COMPLETED))
+
+    [completed] = await events(database, job_id="j-1", **COMPLETED)
+    assert completed["result"]["listening"] == {
+        "sounds": ["speech"] if expected_transcript else [],
+        "transcript": expected_transcript,
+    }
+    [stage] = await events(database, stage="listen", segment=0, status="succeeded")
+    assert stage["result"] == {"sounds": [], "transcript": ""}
+    [audio] = await events(database, stage="extract_audio", status="succeeded")
+    segments = audio["result"]["segments"]
+    assert [(item["index"], item["start"], item["end"]) for item in segments] == [
+        (index, original * 10, (original + 1) * 10)
+        for index, original in enumerate(original_indices)
+    ]
+    job = await load_job(database)
+    async with database.transaction() as session:
+        calls = await CallRepository(session).of_job(job.id)
+    listening = [call for call in calls if call["kind"] == TaskKind.LISTEN]
+    assert len(listening) == len(original_indices)
+    [rejected] = [call for call in listening if call["outcome"] == CallOutcome.FAILED]
+    assert rejected["error"] == f"Error code: 400 - {message}"
+    assert rejected["finished_at"] is not None
+    assert rejected["input_tokens"] is None
+    assert "听音降级" in caplog.text and message in caplog.text
+
+    recognition = completed["result"]["recognition"]
+    summary_input = SummarizeCreator.model_validate(
+        {
+            "job_id": "s-1",
+            "run": 1,
+            "batch_id": "b-1",
+            "creator_id": "c-1",
+            "videos": [{"job_id": "j-1", "run": 1, "recognition": recognition}],
+        }
+    )
+    await accept(database, summary_input)
+    await setup.run_until(emitted(database, job_id="s-1", **COMPLETED))
+    [summary] = await events(database, job_id="s-1", **COMPLETED)
+    assert "美妆" in summary["result"]["tags"]
+
+
+@pytest.mark.parametrize(
+    ("error", "status", "outcome", "attempts"),
+    [
+        (Rejected("DataInspectionFailed: inappropriate content"), "failed", CallOutcome.FAILED, 1),
+        (TimeoutError("no response"), "needs_review", CallOutcome.TIMED_OUT, 1),
+        (OSError("connection reset"), "failed", CallOutcome.FAILED, 3),
+    ],
+    ids=["content_inspection", "timeout", "network_error"],
+)
+async def test_other_listen_errors_keep_their_original_handling(
+    database, workspace, monkeypatch, error, status, outcome, attempts
+):
+    setup = Setup(
+        database,
+        workspace,
+        media=FakeMedia(segments=1),
+        retry=RetryPolicy(max_attempts=3, base_delay=timedelta(0)),
+    )
+
+    async def fail_listen(profile, audio):
+        raise error
+
+    monkeypatch.setattr(setup.ai, "listen", fail_listen)
+    await configure_ai(database)
+    await accept(database, video_message())
+    await setup.run_until(emitted(database, type="job", status=status))
+
+    job = await load_job(database)
+    async with database.transaction() as session:
+        calls = await CallRepository(session).of_job(job.id)
+    assert job.status == status
+    assert len(calls) == attempts
+    for call in calls:
+        assert call["kind"] == TaskKind.LISTEN
+        assert call["outcome"] == outcome
+        assert call["error"] == str(error)
+    assert (TaskKind.LISTEN, TaskStatus(status)) in await task_states(database)
+    assert await events(database, stage="recognize") == []
 
 
 async def test_ai_requests_never_exceed_model_capacity(database, setup):

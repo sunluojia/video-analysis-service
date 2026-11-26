@@ -28,7 +28,7 @@ class Media(Protocol):
         ...
 
     async def extract_audio(self, source: Path, target: Path) -> int:
-        """切成固定时长的音频段，按 000.mp3 起依次写入 target；数字静音时返回 0。"""
+        """把可听音频段按 000.mp3 起依次写入 target，返回段数。"""
         ...
 
 
@@ -42,6 +42,10 @@ class VideoMaterial:
 
 class Rejected(Exception):
     """模型接口拒绝了请求本身，如内容审核不通过、音频为空、参数无效；原样重发结果相同，不再重试。"""
+
+
+class InvalidAudio(Rejected):
+    """模型以 HTTP 400 拒绝了空音频或非法格式的听音请求。"""
 
 
 @dataclass(frozen=True)
