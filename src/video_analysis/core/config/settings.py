@@ -54,7 +54,7 @@ class WorkerSettings(ServiceSettings):
     media_slots: int = 4
     admission_factor: float = 2
     """等待模型的工作低于模型并发额度之和的这个倍数时，开始新视频。"""
-    media_backlog: int = 100
+    media_backlog: int = 350
     """处理中视频数的上限，只用来保护磁盘。"""
     min_free_disk_gb: float = 10
     media_timeout_seconds: float = 300
@@ -62,11 +62,11 @@ class WorkerSettings(ServiceSettings):
     audio_segment_seconds: int = 60
     thread_pool_size: int = 4
     poll_interval_seconds: float = 1
-    ai_batch_max_items: int = Field(default=100, ge=1, le=10_000)
+    ai_batch_max_items: int = Field(default=300, ge=1, le=10_000)
     ai_batch_flush_seconds: float = Field(default=120, gt=0)
     ai_batch_max_bytes: int = Field(default=80_000_000, ge=1, le=500_000_000)
     ai_batch_poll_seconds: float = Field(default=25, gt=0)
-    ai_batch_max_active: int = Field(default=3, ge=1)
+    ai_batch_max_active: int = Field(default=20, ge=1)
     max_attempts: int = 3
     retry_delay_seconds: float = 30
 

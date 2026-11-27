@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 
 from video_analysis.core.common.errors import NotFound
 from video_analysis.core.database.repository import Repository
+from video_analysis.modules.ai.batch.tables import ai_batch_items
 from video_analysis.modules.analysis.job.models import Job, JobKind, JobStatus
 from video_analysis.modules.analysis.job.tables import jobs
 
@@ -30,8 +31,18 @@ class JobRepository(Repository):
         return list(await self._session.scalars(stmt))
 
     async def processing_videos(self) -> int:
+        waiting_in_batch = (
+            select(ai_batch_items.c.custom_id)
+            .where(
+                ai_batch_items.c.job_id == jobs.c.id,
+                ai_batch_items.c.finished_at.is_(None),
+            )
+            .exists()
+        )
         stmt = select(func.count()).where(
-            jobs.c.kind == JobKind.VIDEO, jobs.c.status == JobStatus.PROCESSING
+            jobs.c.kind == JobKind.VIDEO,
+            jobs.c.status == JobStatus.PROCESSING,
+            ~waiting_in_batch,
         )
         return (await self._session.execute(stmt)).scalar_one()
 

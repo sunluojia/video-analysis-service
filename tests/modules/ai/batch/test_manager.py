@@ -370,3 +370,23 @@ async def test_oversized_recognition_is_available_to_the_realtime_worker(databas
         [pool] = await QuotaRepository(session).pools()
     task, _ = await setup.worker()._claim_ai(pool)
     assert task.kind == TaskKind.RECOGNIZE and task.ai_batch_fallback and task.attempts == 1
+
+
+async def test_submitted_batch_videos_do_not_consume_media_backlog(database, workspace):
+    from video_analysis.modules.analysis.job.repository import JobRepository
+
+    await configure_batch_route(database)
+    await accept(database, video_message("v-batch-1").model_copy(update={"ai_batch_mode": True}))
+    setup = Setup(database, workspace, media=FakeMedia(has_audio=False))
+
+    async def prepared():
+        return any(row.kind == TaskKind.RECOGNIZE for row in await get_tasks(database))
+
+    await setup.run_until(prepared)
+    async with database.transaction() as session:
+        assert await JobRepository(session).processing_videos() == 1
+    bailian = FakeBailian()
+    await manager(setup, bailian, items=1).tick()
+    assert len(bailian.payloads) == 1
+    async with database.transaction() as session:
+        assert await JobRepository(session).processing_videos() == 0
