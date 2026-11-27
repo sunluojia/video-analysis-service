@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_analysis.core.common.clock import utcnow
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
+from video_analysis.integrations.media.bundle import open_preextract_bundle
 from video_analysis.modules.ai.call.formatting import filter_appearances
 from video_analysis.modules.ai.call.models import AiProfile, CallOutcome, Usage
 from video_analysis.modules.ai.call.repository import CallRepository
@@ -55,6 +57,12 @@ PREPARATION = frozenset({TaskKind.EXTRACT_FRAMES, TaskKind.EXTRACT_AUDIO, TaskKi
 
 class WorkerLost(Exception):
     """任务租约到期仍未结束，执行它的 Worker 已中断。"""
+
+
+@dataclass(frozen=True)
+class ExtractedAudio:
+    indices: list[int]
+    segment_seconds: int
 
 
 class Pipeline:
@@ -115,7 +123,7 @@ class Pipeline:
                 await self._workspace.discard(job.id)
                 job.artifacts_until = None
 
-    async def _process_media(self, task: Task) -> MediaInfo | Job | int | list[int]:
+    async def _process_media(self, task: Task) -> MediaInfo | Job | int | ExtractedAudio:
         job = await self._job(task.job_id)
         source = self._workspace.source(job.id)
         async with asyncio.timeout(self._media_timeout.total_seconds()):
@@ -123,10 +131,20 @@ class Pipeline:
                 return await self._fetch(job, source)
             if task.kind == TaskKind.EXTRACT_FRAMES:
                 target = await self._workspace.fresh(job.id, "frames")
+                with open_preextract_bundle(source) as bundle:
+                    if bundle is not None:
+                        return await bundle.extract_frames(target)
                 return await self._media.extract_frames(source, target)
             target = await self._workspace.fresh(job.id, "audio")
+            with open_preextract_bundle(source) as bundle:
+                if bundle is not None:
+                    return ExtractedAudio(
+                        await bundle.extract_audio(target), bundle.manifest.segment_seconds_config
+                    )
             count = await self._media.extract_audio(source, target)
-            return self._workspace.segment_indices(target, count)
+            return ExtractedAudio(
+                self._workspace.segment_indices(target, count), self._media.segment_seconds
+            )
 
     async def _fetch(self, job: Job, source: Path) -> MediaInfo | Job:
         """有相同分析的结果时直接采用；否则下载、校验并读取媒体信息。"""
@@ -137,6 +155,14 @@ class Pipeline:
             if earlier:
                 return earlier
         await self._materials.download(job.video.material, source)
+        with open_preextract_bundle(source) as bundle:
+            if bundle is not None:
+                manifest = bundle.manifest
+                log.info(
+                    "预抽取素材 %s frames=%s audio=%s",
+                    job.external_id, manifest.frame_count, len(manifest.audio_indices),
+                )  # fmt: skip
+                return MediaInfo(duration=manifest.duration, has_audio=manifest.has_audio)
         return await self._media.probe(source)
 
     async def _ask_ai(self, task: Task, profile: AiProfile) -> tuple[Any, Usage | None]:
@@ -278,9 +304,9 @@ class Pipeline:
                 job.frame_count = output
                 task.succeed(now, _frames_result(job))
             case TaskKind.EXTRACT_AUDIO:
-                job.segment_count = len(output)
-                task.succeed(now, _audio_result(job, output, self._media.segment_seconds))
-                for segment in range(len(output)):
+                job.segment_count = len(output.indices)
+                task.succeed(now, _audio_result(job, output.indices, output.segment_seconds))
+                for segment in range(job.segment_count):
                     tasks.add(Task(TaskKind.LISTEN, job.id, segment, retry_generation=generation))
             case TaskKind.LISTEN:
                 task.succeed(now, output.model_dump(mode="json"))
