@@ -3,9 +3,10 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from sqlalchemy import func, insert, select, update
+from sqlalchemy import func, insert, or_, select, update
 
 from video_analysis.core.database.repository import Repository
+from video_analysis.modules.ai.batch.repository import active_batch_lease
 from video_analysis.modules.ai.call.models import AiProfile, CallOutcome, Usage
 from video_analysis.modules.ai.call.tables import ai_calls
 from video_analysis.modules.ai.prompt.tables import ai_prompts
@@ -18,7 +19,9 @@ TIME_ZONE = "Asia/Shanghai"
 
 
 class CallRepository(Repository):
-    async def start(self, task: Task, profile: AiProfile, *, worker_id: str) -> None:
+    async def start(
+        self, task: Task, profile: AiProfile, *, worker_id: str, ai_batch: bool = False
+    ) -> None:
         """领取时登记调用，在途请求即刻占用模型额度。调用记录以本次租约为标识，租约到期即调用期限。"""
         await self._session.execute(
             insert(ai_calls).values(
@@ -30,6 +33,7 @@ class CallRepository(Repository):
                 model=profile.label,
                 prompt_id=profile.prompt_id,
                 worker_id=worker_id,
+                ai_batch=ai_batch,
                 started_at=task.started_at,
                 deadline=task.lease_expires_at,
             )
@@ -56,7 +60,11 @@ class CallRepository(Repository):
         """超过期限仍未结束的调用视为丢失，释放额度。"""
         await self._session.execute(
             update(ai_calls)
-            .where(ai_calls.c.finished_at.is_(None), ai_calls.c.deadline < now)
+            .where(
+                ai_calls.c.finished_at.is_(None),
+                ai_calls.c.deadline < now,
+                or_(ai_calls.c.ai_batch.is_(False), ~active_batch_lease(ai_calls.c.id)),
+            )
             .values(finished_at=now, outcome=CallOutcome.LOST)
         )
 

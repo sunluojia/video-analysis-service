@@ -29,6 +29,7 @@ class AiPool:
     capacity: int
     requests_per_minute: int
     shares: Mapping[TaskKind, int]
+    batch_kinds: frozenset[TaskKind] = frozenset()
 
     def choose(self, usage: AiUsage, now: datetime) -> TaskKind | None:
         """目标份额＋空闲借用。

@@ -11,4 +11,5 @@ batches = Table(
     # 取消后到达的任务不再受理。
     Column("cancelled", Boolean, nullable=False, server_default=false()),
     Column("last_dispatched_at", timestamp()),
+    Column("ai_batch_mode", Boolean, nullable=False, server_default=false()),
 )

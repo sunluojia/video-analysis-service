@@ -70,3 +70,20 @@ compose 自带 PostgreSQL 和 Redis，便于单独运行；和调度中心一起
 显式缓存的公共前缀至少需要 1024 个 token，有效期为 5 分钟，命中会续期。创建缓存按输入单价的 125% 计费，命中部分按 10% 计费，适合短时间内反复使用同一版长提示词的任务。[百炼上下文缓存](https://help.aliyun.com/zh/model-studio/context-cache)
 
 每次模型调用的输入、输出和命中缓存的 token 记在 `ai_calls` 里。`GET /api/ai/usage` 按时段、环节和模型汇总调用次数、成败、token、缓存命中和调用总耗时，调度中心的数据看板和「AI 配置 → 模型」的“缓存命中（24 小时）”列都用它。命中率 = 命中的 token ÷ 报告了命中数的调用的输入 token；服务商没报告命中数的调用不计入。Worker 的 `prompt_cache_usage` 日志仍逐条记录模型、结果结构、提示词版本、缓存模式、`prompt_tokens` 和 `cached_tokens`。
+
+### 百炼 Batch 异步推理
+
+在调度中心开启批次的「AI 批量模式」后，北京地域百炼 `qwen3.8-flash` 路由的画面识别和作者汇总会进入 Batch 队列。`qwen3.8-omni-flash` 听音使用实时推理。单条 JSONL 超过 900 KiB、素材无法打包或模型路由不支持 Batch 时，该任务由实时 Worker 处理。切换只影响尚未领取的工作，已经提交的百炼任务会继续轮询和结算。
+
+Worker 按模型和阶段分文件，避免同一个百炼文件混装图像请求和纯文本请求。以下配置使用 `VA_` 环境变量，Batch 请求不占用实时模型额度。
+
+| 配置 | 默认值 | 用途 |
+| --- | --- | --- |
+| `VA_AI_BATCH_MAX_ITEMS` | 100 | 单个文件的目标请求数 |
+| `VA_AI_BATCH_FLUSH_SECONDS` | 120 | 最旧就绪请求达到该等待时间时提交 |
+| `VA_AI_BATCH_MAX_BYTES` | 80,000,000 | 单个文件的 JSONL 字节上限 |
+| `VA_AI_BATCH_POLL_SECONDS` | 25 | 百炼任务轮询间隔 |
+| `VA_AI_BATCH_MAX_ACTIVE` | 3 | 所有 Worker 共用的在途百炼任务上限 |
+| `VA_MEDIA_BACKLOG` | 100 | 全局在处理的视频上限，配合剩余磁盘保护 |
+
+通过 `GET /api/status` 查询各批次开关和在途百炼任务的请求数、完成数及失败数。百炼的完成窗口为 24 小时，分析 Worker 为 Batch 领取保留 25 小时租约。

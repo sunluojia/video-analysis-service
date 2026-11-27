@@ -16,6 +16,7 @@ from video_analysis.integrations.media.ffmpeg import FfmpegMedia, missing_tools,
 from video_analysis.integrations.mq.broker import create_broker
 from video_analysis.integrations.mq.publisher import EventPublisher
 from video_analysis.integrations.scheduler.client import SchedulerClient
+from video_analysis.modules.ai.batch.manager import BatchLimits, BatchManager
 from video_analysis.modules.scheduling.execution.pipeline import Pipeline
 from video_analysis.modules.scheduling.execution.worker import Worker, WorkerLimits
 from video_analysis.modules.scheduling.task.models import RetryPolicy, WorkerIdentity
@@ -57,18 +58,40 @@ async def run(settings: WorkerSettings) -> None:
     )
     identity = WorkerIdentity(settings.worker_id, settings.worker_session_id)
     worker = Worker(database, pipeline, workspace, limits, identity)
+    batch_manager = BatchManager(
+        database,
+        pipeline,
+        BatchLimits(
+            settings.ai_batch_max_items,
+            settings.ai_batch_max_bytes,
+            timedelta(seconds=settings.ai_batch_flush_seconds),
+            timedelta(seconds=settings.ai_batch_poll_seconds),
+            settings.ai_batch_max_active,
+        ),
+        identity,
+    )
     publisher = EventPublisher(
         database, create_broker(settings), settings.event_queue, settings.event_actor
     )
+
+    def stop() -> None:
+        worker.stop()
+        batch_manager.stop()
+
     for stop_signal in (signal.SIGINT, signal.SIGTERM):
         # Windows 不支持信号处理器，退出时由租约回收未完成的任务。
         with suppress(NotImplementedError):
-            loop.add_signal_handler(stop_signal, worker.stop)
+            loop.add_signal_handler(stop_signal, stop)
     publishing = asyncio.create_task(publisher.run(settings.poll_interval_seconds))
     try:
-        await worker.run()
+        async with asyncio.TaskGroup() as running:
+            running.create_task(worker.run())
+            running.create_task(batch_manager.run())
     finally:
+        stop()
         publishing.cancel()
+        with suppress(asyncio.CancelledError):
+            await publishing
         await scheduler.aclose()
         await database.dispose()
 

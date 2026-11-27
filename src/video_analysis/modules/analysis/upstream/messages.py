@@ -25,6 +25,7 @@ class JobMessage(BaseModel):
     """分析轮次；更大的轮次表示重新分析。"""
     batch_id: Label
     creator_id: Label
+    ai_batch_mode: bool | None = None
 
 
 class AnalyzeVideo(JobMessage, VideoInput):

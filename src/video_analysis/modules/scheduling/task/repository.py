@@ -2,9 +2,10 @@ from collections.abc import Collection, Sequence
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, func, or_, select, update
+from sqlalchemy import ColumnElement, Select, and_, func, or_, select, update
 
 from video_analysis.core.database.repository import Repository
+from video_analysis.modules.ai.batch.repository import active_batch_lease
 from video_analysis.modules.analysis.batch.tables import batches
 from video_analysis.modules.analysis.job.models import JobKind, JobStatus
 from video_analysis.modules.analysis.job.results import Listening
@@ -37,21 +38,33 @@ class TaskRepository(Repository):
         return [Listening.model_validate(task.result) for task in await self._session.scalars(stmt)]
 
     async def waiting_since(
-        self, kinds: Collection[TaskKind], now: datetime, listen_limit: int
+        self,
+        kinds: Collection[TaskKind],
+        now: datetime,
+        listen_limit: int,
+        *,
+        batch_kinds: Collection[TaskKind] = (),
     ) -> dict[TaskKind, datetime]:
         """各类可执行任务中等待最久者的可执行时间。"""
         stmt = (
-            self._executable(select(tasks.c.kind, func.min(tasks.c.run_after)), now, listen_limit)
+            self._realtime(
+                self._executable(
+                    select(tasks.c.kind, func.min(tasks.c.run_after)), now, listen_limit
+                ),
+                batch_kinds,
+            )
             .where(tasks.c.kind.in_(kinds))
             .group_by(tasks.c.kind)
         )
         return dict((await self._session.execute(stmt)).all())
 
-    async def ready_counts(self, now: datetime, listen_limit: int) -> dict[TaskKind, int]:
+    async def ready_counts(
+        self, now: datetime, listen_limit: int, *, batch_kinds: Collection[TaskKind] = ()
+    ) -> dict[TaskKind, int]:
         """各类可执行、尚未领取的任务数。"""
-        stmt = self._executable(select(tasks.c.kind, func.count()), now, listen_limit).group_by(
-            tasks.c.kind
-        )
+        stmt = self._realtime(
+            self._executable(select(tasks.c.kind, func.count()), now, listen_limit), batch_kinds
+        ).group_by(tasks.c.kind)
         return dict((await self._session.execute(stmt)).all())
 
     async def preparing_videos(self) -> int:
@@ -75,17 +88,57 @@ class TaskRepository(Repository):
         return dict((await self._session.execute(stmt)).all())
 
     async def next_task(
-        self, kinds: Collection[TaskKind], now: datetime, listen_limit: int
+        self,
+        kinds: Collection[TaskKind],
+        now: datetime,
+        listen_limit: int,
+        *,
+        batch_kinds: Collection[TaskKind] = (),
     ) -> Task | None:
         """领取一项可执行任务；其他 Worker 正在领取的行会被跳过。"""
         stmt = (
-            self._executable(select(Task), now, listen_limit)
+            self._realtime(self._executable(select(Task), now, listen_limit), batch_kinds)
             .where(tasks.c.kind.in_(kinds))
             .order_by(*FAIR_ORDER)
             .limit(1)
             .with_for_update(of=tasks, skip_locked=True)
         )
         return await self._session.scalar(stmt)
+
+    async def batch_candidates(
+        self,
+        kind: TaskKind,
+        now: datetime,
+        limit: int,
+        *,
+        claim_ids: Collection[UUID] | None = None,
+    ) -> list[Task]:
+        stmt = (
+            self._executable(select(Task), now, listen_limit=1)
+            .where(tasks.c.kind == kind, self._batch_mode())
+            .order_by(tasks.c.run_after, tasks.c.id)
+            .limit(limit)
+        )
+        if claim_ids is not None:
+            stmt = stmt.where(tasks.c.id.in_(claim_ids)).with_for_update(of=tasks, skip_locked=True)
+        return list(await self._session.scalars(stmt))
+
+    async def fallback_batch(self, task_ids: Collection[UUID]) -> None:
+        await self._session.execute(
+            update(tasks)
+            .where(tasks.c.id.in_(task_ids), tasks.c.status == TaskStatus.READY)
+            .values(ai_batch_fallback=True)
+        )
+
+    @staticmethod
+    def _batch_mode() -> ColumnElement[bool]:
+        return and_(batches.c.ai_batch_mode.is_(True), tasks.c.ai_batch_fallback.is_(False))
+
+    @classmethod
+    def _realtime(cls, stmt: Select, batch_kinds: Collection[TaskKind]) -> Select:
+        if not batch_kinds:
+            return stmt
+        return stmt.where(~and_(tasks.c.kind.in_(batch_kinds), cls._batch_mode()))
 
     async def mark_dispatched(self, task: Task, now: datetime) -> None:
         batch_id = select(jobs.c.batch_id).where(jobs.c.id == task.job_id).scalar_subquery()
@@ -96,7 +149,11 @@ class TaskRepository(Repository):
     async def expired(self, now: datetime) -> list[Task]:
         stmt = (
             select(Task)
-            .where(tasks.c.status == TaskStatus.RUNNING, tasks.c.lease_expires_at < now)
+            .where(
+                tasks.c.status == TaskStatus.RUNNING,
+                tasks.c.lease_expires_at < now,
+                ~active_batch_lease(tasks.c.lease_id),
+            )
             .with_for_update(skip_locked=True)
         )
         return list(await self._session.scalars(stmt))

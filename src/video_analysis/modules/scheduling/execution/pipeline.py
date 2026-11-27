@@ -15,14 +15,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from video_analysis.core.common.clock import utcnow
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
+from video_analysis.modules.ai.call.formatting import filter_appearances
 from video_analysis.modules.ai.call.models import AiProfile, CallOutcome, Usage
 from video_analysis.modules.ai.call.repository import CallRepository
 from video_analysis.modules.ai.call.service import CallService
 from video_analysis.modules.analysis.job.models import Job, JobKind, JobStatus, MediaInfo
 from video_analysis.modules.analysis.job.repository import JobRepository
-from video_analysis.modules.analysis.job.results import Listening, merge_listening
+from video_analysis.modules.analysis.job.results import (
+    CreatorTags,
+    Listening,
+    Recognition,
+    merge_listening,
+)
 from video_analysis.modules.analysis.upstream.service import UpstreamService
 from video_analysis.modules.scheduling.execution.ports import (
+    Answer,
     InvalidAudio,
     Materials,
     Media,
@@ -136,24 +143,49 @@ class Pipeline:
         """返回阶段的输出和这次调用的 token 用量。"""
         job = await self._job(task.job_id)
         async with asyncio.timeout(profile.timeout_seconds):
-            if task.kind == TaskKind.SUMMARIZE:
-                videos = [video.recognition for video in job.summary.videos]
-                answer = await self._ai.summarize(profile, videos)
+            material = await self._ai_input(task, job)
+            if isinstance(material, list):
+                answer = await self._ai.summarize(profile, material)
                 return answer.value, answer.usage
-
-            if task.kind == TaskKind.LISTEN:
-                assert task.segment is not None, "听音任务对应一个音频段"
-                segment = self._workspace.segment(job.id, task.segment)
-                answer = await self._ai.listen(profile, segment)
+            if isinstance(material, Path):
+                answer = await self._ai.listen(profile, material)
                 return answer.value, answer.usage
-
-            frames = self._workspace.frames(job.id)
-            if not frames:
-                raise Rejected("没有抽帧图片，不能识别；请重新分析这个视频")
-            video, listening = job.video, await self._listening(job.id)
-            material = VideoMaterial(frames, listening, video.description, video.topics)
             answer = await self._ai.recognize(profile, material)
-            return (listening, answer.value), answer.usage
+            return (material.listening, answer.value), answer.usage
+
+    async def prepare_ai(self, task: Task) -> Path | VideoMaterial | list[Recognition]:
+        return await self._ai_input(task, await self._job(task.job_id))
+
+    async def _ai_input(self, task: Task, job: Job) -> Path | VideoMaterial | list[Recognition]:
+        if task.kind == TaskKind.SUMMARIZE:
+            return [video.recognition for video in job.summary.videos]
+        if task.kind == TaskKind.LISTEN:
+            assert task.segment is not None
+            return self._workspace.segment(job.id, task.segment)
+        frames = self._workspace.frames(job.id)
+        if not frames:
+            raise Rejected("没有抽帧图片，不能识别；请重新分析这个视频")
+        video, listening = job.video, await self._listening(job.id)
+        return VideoMaterial(frames, listening, video.description, video.topics)
+
+    async def settle_batch(
+        self,
+        task: Task,
+        profile: AiProfile,
+        result: Answer[Recognition | CreatorTags] | Exception,
+        frame_count: int | None,
+    ) -> bool:
+        if isinstance(result, Exception):
+            return await self._failed(task, result, profile)
+        value = result.value
+        if isinstance(value, Recognition):
+            assert frame_count is not None
+            filter_appearances(value, frame_count)
+            output = (await self._listening(task.job_id), value)
+        else:
+            job = await self._job(task.job_id)
+            output = value.with_observed_tags([video.recognition for video in job.summary.videos])
+        return await self._succeeded(task, output, profile, result.usage)
 
     async def _job(self, job_id: UUID) -> Job:
         async with self._database.transaction() as session:
@@ -171,7 +203,7 @@ class Pipeline:
         usage: Usage | None,
         *,
         call_error: str | None = None,
-    ) -> None:
+    ) -> bool:
         """保存已完成的阶段，听音降级时调用本身记为失败。"""
         async with self._database.transaction() as session:
             now = utcnow()
@@ -182,13 +214,14 @@ class Pipeline:
                 )
             task = await self._current(session, claimed)
             if task is None:
-                return
+                return False
             await self._advance(session, task, output, profile, now)
         if claimed.kind == TaskKind.RECOGNIZE:
             # 识别已保存，下载的视频不再需要；抽帧图片和音频段保留到保留期结束。
             await self._workspace.discard_source(claimed.job_id)
+        return True
 
-    async def _failed(self, claimed: Task, error: Exception, profile: AiProfile | None) -> None:
+    async def _failed(self, claimed: Task, error: Exception, profile: AiProfile | None) -> bool:
         async with self._database.transaction() as session:
             now = utcnow()
             if claimed.kind.uses_ai:
@@ -197,8 +230,10 @@ class Pipeline:
                 )
                 await CallRepository(session).finish(claimed, outcome, now, describe(error))
             task = await self._current(session, claimed)
-            if task is not None:
-                await self._record_failure(session, task, error, now, profile)
+            if task is None:
+                return False
+            await self._record_failure(session, task, error, now, profile)
+            return True
 
     @staticmethod
     async def _current(session: AsyncSession, claimed: Task) -> Task | None:

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Index, Integer, String, Table, Text, Uuid, text
+from sqlalchemy import Boolean, Column, Index, Integer, String, Table, Text, Uuid, false, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from video_analysis.core.database.mapping import (
@@ -20,6 +20,7 @@ tasks = Table(
     Column("status", enum_column(TaskStatus), nullable=False),
     Column("attempts", Integer, nullable=False),
     Column("retry_generation", Integer, nullable=False, server_default=text("0")),
+    Column("ai_batch_fallback", Boolean, nullable=False, server_default=false()),
     Column("run_after", timestamp(), nullable=False),
     Column("started_at", timestamp()),
     Column("lease_id", Uuid),

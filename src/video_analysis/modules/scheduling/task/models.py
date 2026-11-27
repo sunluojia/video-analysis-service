@@ -78,6 +78,8 @@ class Task:
     error: str | None = None
     created_at: datetime = field(default_factory=utcnow)
     finished_at: datetime | None = None
+    ai_batch_fallback: bool = False
+    """本轮请求不能打包时，把该阶段交还实时推理。"""
     retry_generation: int = 0
     """人工补跑重置尝试次数时递增，后续新建的阶段继承代次。"""
 
@@ -115,6 +117,7 @@ class Task:
     def retry(self, now: datetime) -> None:
         self.status = TaskStatus.READY
         self.attempts = 0
+        self.ai_batch_fallback = False
         self.retry_generation += 1
         self.run_after = now
         self.error = None

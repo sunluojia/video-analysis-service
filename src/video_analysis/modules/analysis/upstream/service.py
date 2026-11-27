@@ -111,7 +111,7 @@ class UpstreamService:
             job = await self._jobs.require(Job, job.id, lock=True)
             if message.run <= job.run:
                 return
-        if not await self._batches.accepting(message.batch_id):
+        if not await self._batches.accepting(message.batch_id, message.ai_batch_mode):
             return
         now = utcnow()
         if job is None:

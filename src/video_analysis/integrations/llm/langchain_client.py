@@ -25,6 +25,11 @@ from langchain_core.messages.content import (
 from openai import APIStatusError
 from pydantic import BaseModel
 
+from video_analysis.modules.ai.call.formatting import (
+    filter_appearances,
+    recognition_prompt,
+    summary_prompt,
+)
 from video_analysis.modules.ai.call.models import (
     BAILIAN_EXPLICIT_CACHE,
     EXPLICIT_CACHE_MODELS,
@@ -66,37 +71,18 @@ class LangChainAi:
 
     async def recognize(self, profile: AiProfile, material: VideoMaterial) -> Answer[Recognition]:
         frames = await asyncio.to_thread(lambda: [path.read_bytes() for path in material.frames])
-        facts = {
-            "发布描述": material.description,
-            "发布话题": material.topics,
-            "声音类型": material.listening.sounds,
-            "讲话文本": material.listening.transcript,
-        }
-        text = f"视频画面共 {len(frames)} 张，按时间顺序附后，序号从 0 开始。\n{_json(facts)}"
+        text = recognition_prompt(material, len(frames))
         images = [
             create_image_block(base64=_base64(data), mime_type="image/jpeg") for data in frames
         ]
         answer = await self._ask(profile, Recognition, create_text_block(text), *images)
-        answer.value.appearances = [
-            item
-            for item in answer.value.appearances
-            if item.frame_index < len(frames)
-            and (item.age_group or item.skin_tone)
-            and item.evidence.strip()
-        ]
+        filter_appearances(answer.value, len(frames))
         return answer
 
     async def summarize(
         self, profile: AiProfile, videos: Sequence[Recognition]
     ) -> Answer[CreatorTags]:
-        results = []
-        for video in videos:
-            row = video.model_dump(mode="json")
-            # 作者话题通过带原文的字段传入，避免重复计入展示列表里的译文。
-            topic_tags = set(video.published_topic_tags())
-            row["tags"] = [tag for tag in video.tags if tag not in topic_tags]
-            results.append(row)
-        answer = await self._ask(profile, CreatorTags, create_text_block(_json(results)))
+        answer = await self._ask(profile, CreatorTags, create_text_block(summary_prompt(videos)))
         return replace(answer, value=answer.value.with_observed_tags(videos))
 
     async def _ask[T: BaseModel](
@@ -199,10 +185,6 @@ def _secret(name: str) -> str:
     if not value:
         raise LookupError(f"环境变量 {name} 未设置")
     return value
-
-
-def _json(value: object) -> str:
-    return json.dumps(value, ensure_ascii=False, indent=2)
 
 
 def _base64(data: bytes) -> str:

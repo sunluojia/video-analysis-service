@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Index, Integer, String, Table, Text, Uuid, text
+from sqlalchemy import Boolean, Column, Index, Integer, String, Table, Text, Uuid, false, text
 
 from video_analysis.core.database.mapping import enum_column, metadata, reference, timestamp
 from video_analysis.modules.ai.call.models import CallOutcome
@@ -16,6 +16,7 @@ ai_calls = Table(
     Column("model", String(200)),
     Column("prompt_id", reference("ai_prompts.id")),
     Column("worker_id", String(128)),
+    Column("ai_batch", Boolean, nullable=False, server_default=false()),
     Column("started_at", timestamp(), nullable=False),
     Column("deadline", timestamp(), nullable=False),
     Column("finished_at", timestamp()),
