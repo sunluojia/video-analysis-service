@@ -17,7 +17,7 @@ from video_analysis.core.common.clock import utcnow
 from video_analysis.core.database.engine import Database
 from video_analysis.core.storage.workspace import Workspace
 from video_analysis.integrations.media.bundle import open_preextract_bundle
-from video_analysis.modules.ai.call.formatting import filter_appearances
+from video_analysis.modules.ai.call.formatting import filter_frame_evidence
 from video_analysis.modules.ai.call.models import AiProfile, CallOutcome, Usage
 from video_analysis.modules.ai.call.repository import CallRepository
 from video_analysis.modules.ai.call.service import CallService
@@ -206,7 +206,7 @@ class Pipeline:
         value = result.value
         if isinstance(value, Recognition):
             assert frame_count is not None
-            filter_appearances(value, frame_count)
+            filter_frame_evidence(value, frame_count)
             output = (await self._listening(task.job_id), value)
         else:
             job = await self._job(task.job_id)

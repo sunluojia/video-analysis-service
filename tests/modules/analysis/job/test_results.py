@@ -1,15 +1,22 @@
+import json
+
 import pytest
 
+from video_analysis.modules.ai.call.formatting import filter_frame_evidence, summary_prompt
+from video_analysis.modules.ai.prompt.builtin import BUILTIN_PROMPTS
 from video_analysis.modules.analysis.job.results import (
     AgeGroup,
     CreatorTags,
     Listening,
+    PeopleInFrame,
+    PersonView,
     Recognition,
     SkinTone,
     Sound,
     TopicTranslation,
     merge_listening,
 )
+from video_analysis.modules.scheduling.task.models import TaskKind
 
 
 def test_tag_content_and_count_are_controlled_by_the_prompt():
@@ -235,12 +242,14 @@ def test_negative_and_uncertain_tags_are_removed_even_without_a_conflict(invalid
 @pytest.mark.parametrize(
     ("tags", "expected"),
     [
-        (["肢体出镜", "1人出镜"], ["仅肢体出镜", "1人出镜"]),
+        (["肢体出镜", "1人出镜", "多人出镜"], ["仅肢体出镜"]),
+        (["无人出镜", "有1人出镜"], ["无人出镜"]),
+        (["有1人出镜"], ["1人出镜"]),
         (["仅肢体出镜", "人脸出镜", "肢体出镜"], ["人脸出镜"]),
         (["人脸出镜", "仅肢体出镜", "2人出镜"], ["人脸出镜", "2人出镜"]),
     ],
 )
-def test_video_prefers_face_over_body_only(tags, expected):
+def test_legacy_video_drops_counts_when_only_limbs_or_nobody_are_reported(tags, expected):
     assert Recognition(tags=tags, summary="").display_tags(Listening(sounds=[])) == expected
 
 
@@ -267,22 +276,16 @@ def test_summary_keeps_both_face_and_body_and_drops_negative_sides_of_conflicts(
 
 
 def test_pet_and_child_observations_use_allowed_tags_without_requiring_a_face():
-    observations = [
-        "仅肢体出镜",
-        "2人出镜",
-        "有小孩",
-        "1个小孩",
-        "有宠物",
-        "金毛寻回犬外观",
-        "1只宠物",
-    ]
+    observations = ["有小孩", "1个小孩", "有宠物", "金毛寻回犬外观", "1只宠物"]
     video = Recognition(
         tags=[*observations, "婴幼儿出镜", "儿童出镜", "动物出镜", "宠物出镜", "上半身出镜"],
+        people=PeopleInFrame(frame_index=0, views=[PersonView.BACK_VIEW, PersonView.UPPER_BODY]),
         summary="成人怀中的婴儿脸部被遮住，能看清身体。",
     )
 
-    assert video.display_tags(Listening(sounds=[])) == observations
-    assert CreatorTags(tags=video.tags).with_observed_tags([video]).tags == observations
+    expected = [*observations, "2人出镜"]
+    assert video.display_tags(Listening(sounds=[])) == expected
+    assert CreatorTags(tags=expected).with_observed_tags([video]).tags == expected
 
 
 def test_child_age_categories_and_allowed_people_counts_remain_distinct():
@@ -292,7 +295,93 @@ def test_child_age_categories_and_allowed_people_counts_remain_distinct():
     summary = CreatorTags(tags=["有小孩", *ages, *counts, "0人出镜", "双人出镜"])
 
     assert video.display_tags(Listening(sounds=[])) == ["有小孩", *ages, "多人出镜"]
-    assert summary.with_observed_tags([video]).tags == ["有小孩", *ages, *counts]
+    assert summary.with_observed_tags([video]).tags == ["有小孩", *ages, "多人出镜"]
+
+
+def test_prompts_and_schema_use_the_same_visual_standard_for_people_and_children():
+    for kind in (TaskKind.RECOGNIZE, TaskKind.SUMMARIZE):
+        prompt = BUILTIN_PROMPTS[kind]
+        assert "背影" in prompt and "小孩" in prompt and "局部躯干" in prompt
+    assert '"views": []' in BUILTIN_PROMPTS[TaskKind.RECOGNIZE]
+    assert "不跨视频相加" in BUILTIN_PROMPTS[TaskKind.SUMMARIZE]
+    schema = Recognition.model_json_schema()["$defs"]
+    assert schema["PersonView"]["enum"] == ["face", "head", "upper_body", "back_view"]
+    assert "局部躯干不计入" in schema["PeopleInFrame"]["properties"]["views"]["description"]
+
+
+def test_limb_only_record_with_visible_skin_does_not_generate_a_people_count():
+    video = Recognition.model_validate(
+        {
+            "tags": ["仅肢体出镜", "有1人出镜", "多人出镜", "人脸出镜", "产品展示"],
+            "people": {"views": []},
+            "appearances": [{"frame_index": 0, "skin_tone": "白肤色", "evidence": "手背"}],
+            "summary": "只看到手指和手臂。",
+        }
+    )
+    filter_frame_evidence(video, 1)
+
+    assert video.display_tags(Listening(sounds=[])) == ["仅肢体出镜", "产品展示", "白肤色"]
+    [row] = json.loads(summary_prompt([video]))
+    assert row["tags"] == ["仅肢体出镜", "产品展示"]
+    assert CreatorTags(tags=["仅肢体出镜", "1人出镜"]).with_observed_tags([video]).tags == [
+        "仅肢体出镜",
+        "白肤色",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("views", "uncertain", "expected"),
+    [
+        ([PersonView.BACK_VIEW], False, ["1人出镜"]),
+        ([PersonView.HEAD, PersonView.UPPER_BODY], False, ["2人出镜"]),
+        ([PersonView.FACE, PersonView.BACK_VIEW], False, ["人脸出镜", "2人出镜"]),
+        ([PersonView.HEAD, PersonView.BACK_VIEW], True, ["多人出镜"]),
+        ([PersonView.BACK_VIEW], True, ["1人出镜"]),
+    ],
+)
+def test_people_count_is_derived_from_one_valid_frame(views, uncertain, expected):
+    video = Recognition(
+        tags=["仅肢体出镜", "无人出镜", "有9人出镜"],
+        people=PeopleInFrame(frame_index=1, views=views, count_uncertain=uncertain),
+        summary="",
+    )
+    filter_frame_evidence(video, 2)
+
+    assert video.display_tags(Listening(sounds=[])) == expected
+
+
+@pytest.mark.parametrize("frame_index", [None, -1, 2])
+def test_people_with_missing_or_invalid_frame_index_cannot_support_a_count(frame_index):
+    video = Recognition(
+        tags=["1人出镜"],
+        people=PeopleInFrame(frame_index=frame_index, views=[PersonView.BACK_VIEW]),
+        summary="",
+    )
+    filter_frame_evidence(video, 2)
+
+    assert video.people == PeopleInFrame(views=[])
+    assert video.display_tags(Listening(sounds=[])) == []
+
+
+def test_creator_counts_must_come_from_individual_videos():
+    videos = [
+        Recognition(
+            tags=[], people=PeopleInFrame(frame_index=0, views=[PersonView.BACK_VIEW]), summary=""
+        ),
+        Recognition(tags=["人脸出镜", "2人出镜"], summary=""),
+        Recognition(tags=["仅肢体出镜", "4人出镜"], summary=""),
+    ]
+    tags = CreatorTags(tags=["人脸出镜", "仅肢体出镜", "1人出镜", "2人出镜", "3人出镜", "4人出镜"])
+
+    assert tags.with_observed_tags(videos).tags == ["人脸出镜", "仅肢体出镜", "1人出镜", "2人出镜"]
+
+
+def test_creator_can_group_distinct_supported_multi_person_counts_without_adding_them():
+    videos = [Recognition(tags=[count], summary="") for count in ["2人出镜", "4人出镜"]]
+    tags = CreatorTags(tags=["多人出镜", "6人出镜"])
+
+    assert tags.with_observed_tags(videos).tags == ["多人出镜"]
+    assert tags.with_observed_tags(videos[:1]).tags == []
 
 
 def test_gender_aliases_merge_without_changing_skin_tone_or_related_content():

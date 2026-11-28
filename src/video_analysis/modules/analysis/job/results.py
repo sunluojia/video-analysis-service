@@ -129,8 +129,9 @@ _AGE = re.compile(r"\d+(?:-\d+)?岁(?:\+|左右|以上|以下|及以上|及以�
 _TOPIC_PREFIXES = ("#", "＃")
 _BODY_ONLY = "仅肢体出镜"
 _FACE = "人脸出镜"
-_SCREEN_TAGS = {_BODY_ONLY, _FACE, "无人出镜", "多人出镜"}
-_SCREEN_COUNT = re.compile(r"[1-9][0-9]*人出镜")
+_NO_PERSON = "无人出镜"
+_SCREEN_TAGS = {_BODY_ONLY, _FACE, _NO_PERSON}
+_SCREEN_COUNT = re.compile(r"有?([1-9][0-9]*|多)人出镜")
 _TAG_ALIASES = {
     "肢体出镜": _BODY_ONLY,
     "男性呈现": "男性",
@@ -175,7 +176,7 @@ class Appearance(BaseModel):
         description=f"画面中清楚可见的皮肤色调，优先用 {'、'.join(SkinTone)}，"
         "有严重色偏或证据不足时为 null",
     )
-    evidence: str = Field(default="", description="简述帧内人物位置和可见依据")
+    evidence: str = Field(default="", description="简述帧内人物位置及年龄段或肤色的可见依据")
 
     @field_validator("age_group", "skin_tone", mode="before")
     @classmethod
@@ -184,10 +185,35 @@ class Appearance(BaseModel):
         return (value.strip() or None) if isinstance(value, str) else value
 
 
+class PersonView(StrEnum):
+    FACE = "face"
+    HEAD = "head"
+    UPPER_BODY = "upper_body"
+    BACK_VIEW = "back_view"
+
+
+class PeopleInFrame(BaseModel):
+    frame_index: int | None = Field(None, description="可辨认人数最多的可靠画面序号，从 0 开始")
+    views: list[PersonView] = Field(
+        description="同一帧每个可辨认人物记录一次：face 清晰人脸、head 清晰头部、"
+        "upper_body 清晰可辨的人物上半身、back_view 明显可辨的人物背影。"
+        "仅见手脚、四肢或不可辨认的局部躯干不计入；无可计数人物时返回空列表。"
+    )
+    count_uncertain: bool = Field(
+        False, description="仅当该帧明确可辨认至少两人，但无法可靠数清全部人数时为 true"
+    )
+
+
 class Recognition(BaseModel):
-    tags: list[str] = Field(description="依据画面和声音事实得出的视频内容标签，不照搬发布话题")
+    tags: list[str] = Field(
+        description="有画面或声音依据的视频标签，不照搬发布话题；出镜人数标签由 people 生成"
+    )
+    people: PeopleInFrame | None = Field(
+        None, description="每次识别都返回同帧的可辨认人物证据，无可计数人物时返回空 views"
+    )
     appearances: list[Appearance] = Field(
-        default_factory=list, description="单独核查肤色和外观年龄段，保留有据的帧，无依据时为空"
+        default_factory=list,
+        description="单独核查肤色和外观年龄段，不作为出镜人数依据；无依据时为空",
     )
     products: list[Product] = Field(
         default_factory=list, description="视频中清晰出现或口播推荐的商品"
@@ -230,13 +256,32 @@ class Recognition(BaseModel):
             )
         )
 
+    def tags_with_people_evidence(self) -> list[str]:
+        """根据同帧证据生成出镜人数；早期结果只保留没有状态冲突的人数。"""
+        tags = [tag for value in self.tags if (tag := _normalize_tag(value))]
+        if self.people is None:
+            if _FACE in tags:
+                return [tag for tag in tags if tag != _BODY_ONLY]
+            if _BODY_ONLY in tags or _NO_PERSON in tags:
+                return [tag for tag in tags if not _SCREEN_COUNT.fullmatch(tag)]
+            return tags
+
+        tags = [tag for tag in tags if not _SCREEN_COUNT.fullmatch(tag)]
+        if not self.people.views or self.people.frame_index is None or self.people.frame_index < 0:
+            return [tag for tag in tags if tag != _FACE]
+
+        tags = [tag for tag in tags if tag not in {_BODY_ONLY, _NO_PERSON}]
+        if PersonView.FACE in self.people.views and _FACE not in tags:
+            tags.append(_FACE)
+        count = len(self.people.views)
+        tags.append("多人出镜" if self.people.count_uncertain and count >= 2 else f"{count}人出镜")
+        return tags
+
     def display_tags(self, listening: Listening) -> list[str]:
         """使用独立听音结论，作者话题放在最后。"""
         tags = []
         topics = []
-        for value in self.tags:
-            if not (tag := _normalize_tag(value)):
-                continue
+        for tag in self.tags_with_people_evidence():
             if tag.startswith(_TOPIC_PREFIXES):
                 topics.append(tag)
             elif (
@@ -252,8 +297,6 @@ class Recognition(BaseModel):
                 for size in product.sizes:
                     if label := _size_label(size.value):
                         tags.append(f"{name}{label}")
-        if _FACE in tags:
-            tags = [tag for tag in tags if tag != _BODY_ONLY]
         for sound, label in _SOUND_LABELS.items():
             if sound in listening.sounds:
                 tags.append(label)
@@ -265,15 +308,27 @@ class Recognition(BaseModel):
 
 
 class CreatorTags(BaseModel):
-    tags: list[str] = Field(description="对各视频标签语义去重后的创作者标签")
+    tags: list[str] = Field(
+        description="对各视频标签语义去重；出镜人数只保留单条视频支持的人数，不跨视频相加"
+    )
 
     def with_observed_tags(self, videos: Sequence[Recognition]) -> "CreatorTags":
-        """清洗汇总结果，并补齐各视频实际观察到的年龄段和肤色。"""
+        """保留有来源的出镜人数，并补齐各视频实际观察到的年龄段和肤色。"""
         observed = dict.fromkeys(tag for video in videos for tag in video.appearance_tags())
+        screen_counts = {
+            tag
+            for video in videos
+            for tag in video.tags_with_people_evidence()
+            if _SCREEN_COUNT.fullmatch(tag)
+        }
+        if len(screen_counts - {"1人出镜", "多人出镜"}) >= 2:
+            screen_counts.add("多人出镜")
         tags = [
             tag
             for value in self.tags
-            if (tag := _normalize_tag(value)) and (not _is_appearance(tag) or tag in observed)
+            if (tag := _normalize_tag(value))
+            and (not _is_appearance(tag) or tag in observed)
+            and (not _SCREEN_COUNT.fullmatch(tag) or tag in screen_counts)
         ]
         return self.model_copy(update={"tags": list(dict.fromkeys([*tags, *observed]))})
 
@@ -288,8 +343,11 @@ def _normalize_tag(value: str) -> str | None:
         return None
     if tag.startswith(_NEGATIVE_PREFIXES) and tag not in _BUSINESS_ABSENCE_TAGS:
         return None
-    if tag.endswith("出镜") and tag not in _SCREEN_TAGS and not _SCREEN_COUNT.fullmatch(tag):
-        return None
+    if tag.endswith("出镜") and tag not in _SCREEN_TAGS:
+        if count := _SCREEN_COUNT.fullmatch(tag):
+            tag = f"{count[1]}人出镜"
+        else:
+            return None
     return prefix + tag
 
 

@@ -26,7 +26,7 @@ from openai import APIStatusError
 from pydantic import BaseModel
 
 from video_analysis.modules.ai.call.formatting import (
-    filter_appearances,
+    filter_frame_evidence,
     recognition_prompt,
     summary_prompt,
 )
@@ -76,7 +76,7 @@ class LangChainAi:
             create_image_block(base64=_base64(data), mime_type="image/jpeg") for data in frames
         ]
         answer = await self._ask(profile, Recognition, create_text_block(text), *images)
-        filter_appearances(answer.value, len(frames))
+        filter_frame_evidence(answer.value, len(frames))
         return answer
 
     async def summarize(
